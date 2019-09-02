@@ -2,17 +2,17 @@ import pandas as pd
 import os
 import json
 from dateutil import parser
-patch_time = parser.parse("27 aug 2019 18:30:00 GMT+0000")   
+patch_time = parser.parse("27 aug 2019 18:45:00 GMT+0000")   
 
-champ_list = open("E:/project/TFT/data/ChampList-order.txt").readlines()
+champ_list = open("ChampList-order.txt").readlines()
 champ_list = list(map(lambda x: x[:-1], champ_list))
 
 loger = open("log.txt", "w", encoding="utf-8")
 for region in ["na", "euw"]:
 	all = []
 	log=0
-	for name in os.listdir("E:/project/TFT/data/raw-games/2-sep/1-sep/{}".format(region)):
-		with open("E:/project/TFT/data/raw-games/2-sep/1-sep/{}/{}".format(region, name), 'r', encoding="utf-8") as file:
+	for name in os.listdir("raw-games/{}".format(region)):
+		with open("raw-games/{}/{}".format(region, name), 'r', encoding="utf-8") as file:
 			print(log)
 			log += 1
 			loger.write(name+"\n")
@@ -37,4 +37,5 @@ for region in ["na", "euw"]:
 				row["id"] = name[:-5]
 				row["standing"] = standing
 				all.append(row)
-	pd.DataFrame(all).to_csv("E:/project/TFT/data/clean-games/2-sep/1-sep/{}.csv".format(region), encoding="utf-8")
+	pd.DataFrame(all).to_csv("clean-games/{}.csv".format(region), encoding="utf-8")
+
