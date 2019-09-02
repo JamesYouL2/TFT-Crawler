@@ -5,11 +5,11 @@ import grequests
 import json
 import time
 
-for region in ["euw","na"]:
+for region in ["euw","na","kr"]:
 	mark_game = set()
 
-	ladder = open("E:\project\TFT\data\ladder/2-sep/1-sep-19/ladder-{}.txt".format(region), "r", encoding="utf-8").readlines()
-	log = open('E:/project/TFT/data/raw-games/log.txt', "w")
+	ladder = open("ladder-{}.txt".format(region), "r", encoding="utf-8").readlines()
+	log = open('log.txt', "w")
 
 	urls = []
 
@@ -28,8 +28,8 @@ for region in ["euw","na"]:
 					id = info["id"]
 					if id not in mark_game:
 						mark_game.add(id)
-						with open('E:/project/TFT/data/raw-games/2-sep/1-sep/{}/{}.json'.format(region,id), "w") as file:
+						with open('raw-games/{}/{}.json'.format(region,id), "w") as file:
 							file.write(json.dumps(info))
 						log.write(id+"\n")
-		time.sleep(5)
+		time.sleep(1)
 		print(i)
