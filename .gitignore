@@ -1,0 +1,8 @@
+# ignore README
+README.md
+
+# ignore all files from the data subdirectory
+data/
+
+# ignore all .txt files
+*.txt
