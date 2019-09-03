@@ -31,5 +31,5 @@ for region in ["euw","na","kr"]:
 						with open('raw-games/{}/{}.json'.format(region,id), "w") as file:
 							file.write(json.dumps(info))
 						log.write(id+"\n")
-		time.sleep(.5)
+		time.sleep(.1)
 		print(i)
