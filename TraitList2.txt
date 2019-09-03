@@ -1,0 +1,25 @@
+Trait	Level1	Level2	Level3
+Assassin	3	6	
+Blademaster	3	6	
+Brawler	2	4	6
+Demon	2	4	6
+Dragon	2		
+Elementalist	3		
+Exile	1		
+Glacial	2	4	6
+Guardian	2	4	
+Gunslinger	2	4	6
+Hextech	2	4	
+Imperial	2	4	
+Knight	2	4	
+Ninja	1	4	
+Noble	3	6	
+Phantom	2		
+Pirate	3		
+Ranger	2	4	
+Robot	1		
+Shapeshifter	3	6	
+Sorcerer	3	6	
+Void	3		
+Wild	2	4	
+Yordle	3	6	

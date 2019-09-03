@@ -1,3 +1,4 @@
+Trait-Number
 Assassin-3
 Blademaster-3
 Brawler-2

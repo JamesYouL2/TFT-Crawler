@@ -16,4 +16,4 @@ for region in ["euw", "na", "kr"]:
 		for row in rows:
 			name = row.get_text().strip()
 			file.write(name+"\n")
-		time.sleep(5)
+		time.sleep(1)
