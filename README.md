@@ -17,7 +17,7 @@ ladder_dir = data/ladder
 raw_data_dir = data/raw-games
 clean_data_dir = data/clean-games
 ```
-<br/>I set up the directories for the data to be stored such as:
+I set up the directories for the data to be stored such as:
 ```
 .
 ├── ...
@@ -29,11 +29,10 @@ clean_data_dir = data/clean-games
 │   └── clean-games             # folder containing the clean data
 └── ...
 ```
-<br/>
-You must create the directories yourself. If you choose to organize or rename the folders, you must also reflect the changes in the **config.ini** file. However, the **na1** and **euw1** folders must remain in the **raw data folder**, unless you modify the source code. I will continue to improve the organization and scalability, but this is what I've decided for now.
+You must create the directories yourself. If you choose to reorganize or rename the folders, you must also reflect the changes in the **config.ini** file. However, the **na1** and **euw1** folders must remain in the **raw data folder**, unless you wish to modify the source code. I will continue to improve the organization and scalability, but this is what I've landed on for now.
 
 ## Usage
-Run in this order
+Run the programs in this order:
 ```
 get_ladder.py
 ```
