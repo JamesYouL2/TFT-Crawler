@@ -5,7 +5,7 @@ I have improved scalability and plan to build my own project on top of this.
 
 ## Setup
 Open the **config.ini** file. It should look like the following below.<br/>
-Obtain an API key from [RIOT API](https://developer.riotgames.com/) and update the api_key variable with your API key.
+Obtain an API key from [Riot API](https://developer.riotgames.com/) and update the api_key variable with your API key.
 
 ```python
 [setup]
