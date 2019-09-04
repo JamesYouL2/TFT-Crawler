@@ -1,7 +1,7 @@
 # TFT-Crawler
 Blitz.gg crawler for the auto-chess game Teamfight Tactics. <br/>
-The original project is creditted to [dawyi](https://github.com/dawyi/) and can be found [here](https://github.com/dawyi/TFT-Crawler).
-I modified his project for future scalability.
+The original project is credited to [dawyi](https://github.com/dawyi/) and can be found [here](https://github.com/dawyi/TFT-Crawler).
+I have improved scalability and plan to build my own project on top of this.
 
 ## Setup
 Open the **config.ini** file. It should look like the following below.
@@ -17,8 +17,7 @@ ladder_dir = data/ladder
 raw_data_dir = data/raw-games
 clean_data_dir = data/clean-games
 ```
-<br/>
-I set up the directories for the data to be stored such as:
+<br/>I set up the directories for the data to be stored such as:
 ```
 .
 ├── ...
@@ -44,4 +43,3 @@ get_games.py
 ```
 clean_data.py
 ```
-
