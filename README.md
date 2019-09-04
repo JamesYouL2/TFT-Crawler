@@ -4,8 +4,7 @@ The original project is credited to [dawyi](https://github.com/dawyi/) and can b
 I have improved scalability and plan to build my own project on top of this.
 
 ## Setup
-Open the **config.ini** file. It should look like the following below.<br/>
-Obtain an API key from [Riot API](https://developer.riotgames.com/) and update the api_key variable with your API key.
+Open the **config.ini** file. It should look like the following below:
 
 ```python
 [setup]
@@ -17,6 +16,7 @@ ladder_dir = data/ladder
 raw_data_dir = data/raw-games
 clean_data_dir = data/clean-games
 ```
+Obtain an API key from [Riot API](https://developer.riotgames.com/) and update the api_key variable with your API key.
 I set up the directories for the data to be stored such as:
 ```
 .
@@ -35,10 +35,6 @@ You must create the directories yourself. If you choose to reorganize or rename 
 Run the programs in this order:
 ```
 get_ladder.py
-```
-```
 get_games.py
-```
-```
 clean_data.py
 ```
