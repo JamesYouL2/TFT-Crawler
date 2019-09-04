@@ -31,17 +31,18 @@ for region in regions:
 		rs = (grequests.get(url) for url in urls[i])
 		rs_map = grequests.map(rs)
 		for response in rs_map:
-			data = response.json()["data"]["summoner"]
-			if data is not None:
-				edges = data["games"]["edges"]
-				for game in edges:
-					info = game["node"]
-					id = info["id"]
-					if id not in mark_game:
-						mark_game.add(id)
-						with open(config.get('setup', 'raw_data_dir') + '/{}/{}.json'.format(region,id), "w") as file:
-							file.write(json.dumps(info))
-						log.write(id+"\n")
+			if response.status_code == 200:
+				data = response.json()["data"]["summoner"]
+				if data is not None:
+					edges = data["games"]["edges"]
+					for game in edges:
+						info = game["node"]
+						id = info["id"]
+						if id not in mark_game:
+							mark_game.add(id)
+							with open(config.get('setup', 'raw_data_dir') + '/{}/{}.json'.format(region,id), "w") as file:
+								file.write(json.dumps(info))
+							log.write(id+"\n")
 
 		print(i)
 		time.sleep(1)
