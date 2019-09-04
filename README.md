@@ -16,7 +16,7 @@ ladder_dir = data/ladder
 raw_data_dir = data/raw-games
 clean_data_dir = data/clean-games
 ```
-Obtain an API key from [Riot API](https://developer.riotgames.com/) and update the api_key variable with your API key.<br/>
+Obtain an API key from [Riot API](https://developer.riotgames.com/) and update the api_key variable with your API key.<br/><br/>
 I set up the directories for the data to be stored such as:
 ```
 .
