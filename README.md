@@ -1,10 +1,10 @@
 # TFT-Crawler
-Blitz.gg crawler for the auto-chess game Teamfight Tactics. <br/>
+Blitz.gg crawler for the auto-chess game Teamfight Tactics.<br/>
 The original project is credited to [dawyi](https://github.com/dawyi/) and can be found [here](https://github.com/dawyi/TFT-Crawler).
 I have improved scalability and plan to build my own project on top of this.
 
 ## Setup
-Open the **config.ini** file. It should look like the following below.
+Open the **config.ini** file. It should look like the following below.<br/>
 Obtain an API key from [RIOT API](https://developer.riotgames.com/) and update the api_key variable with your API key.
 
 ```python
