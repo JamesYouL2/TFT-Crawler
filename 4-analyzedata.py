@@ -23,13 +23,13 @@ traitlist = pd.read_csv("Traitlist2.txt",sep='\t')
 
 #Champion Analysis
 champ=df.loc[df['isRanked']].apply(np.count_nonzero)
-champ.sort_values(ascending=False).iloc[0:30]
+print(champ.sort_values(ascending=False).iloc[0:30])
 
 top4=df.loc[(df['isRanked']) & (df['standing'] < 4.5)].apply(np.count_nonzero)
-top4.sort_values(ascending=False).iloc[0:30]
+print(top4.sort_values(ascending=False).iloc[0:30])
 
 win=df.loc[(df['isRanked']) & (df['standing'] < 1.5)].apply(np.count_nonzero)
-win.sort_values(ascending=False).iloc[0:30]
+print(win.sort_values(ascending=False).iloc[0:30])
 
 #Comp Testing
 for trait in traitlist['Trait']:
