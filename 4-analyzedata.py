@@ -23,13 +23,8 @@ traitlist = pd.read_csv("Traitlist2.txt",sep='\t')
 
 #Champion Analysis
 champ=df.loc[df['isRanked']].apply(np.count_nonzero)
-print(champ.sort_values(ascending=False).iloc[0:30])
-
 top4=df.loc[(df['isRanked']) & (df['standing'] < 4.5)].apply(np.count_nonzero)
-print(top4.sort_values(ascending=False).iloc[0:30])
-
 win=df.loc[(df['isRanked']) & (df['standing'] < 1.5)].apply(np.count_nonzero)
-print(win.sort_values(ascending=False).iloc[0:30])
 
 #Comp Testing
 for trait in traitlist['Trait']:
@@ -46,19 +41,23 @@ for trait in traitlist['Trait']:
     traitdf[traitlevel]= np.where(df[trait] >= float(traitlist.loc[traitlist['Trait']==trait]['Level3']),3,traitdf[traitlevel])
 
 #Trait Analysis
-alltrait=traitdf.loc[traitdf['isRanked']]
-top4trait=traitdf.loc[(traitdf['isRanked']) & (traitdf['standing'] < 4.5)]
-wintrait=traitdf.loc[(traitdf['isRanked']) & (traitdf['standing'] < 1.5)]
+alltrait=traitdf.loc[traitdf['isRanked']].reset_index(drop=True)
+top4trait=traitdf.loc[(traitdf['isRanked']) & (traitdf['standing'] < 4.5)].reset_index(drop=True)
+wintrait=traitdf.loc[(traitdf['isRanked']) & (traitdf['standing'] < 1.5)].reset_index(drop=True)
 
-alltrait.apply(np.count_nonzero).sort_values(ascending=False).iloc[0:30]
-top4trait.apply(np.count_nonzero).sort_values(ascending=False).iloc[0:30]
-wintrait.apply(np.count_nonzero).sort_values(ascending=False).iloc[0:30]
+#get championsheet
+championlist = [champ, top4, win]
+championsheet=pd.DataFrame().join(championlist, how="outer")
+championsheet.columns = ['All','Top4','Win']
 
-alltrait.apply(pd.Series.value_counts).to_csv('alltraitlevel.csv')
-top4trait.apply(pd.Series.value_counts).to_csv('top4traitlevel.csv')
-wintrait.apply(pd.Series.value_counts).to_csv('wintraitlevel.csv')
+traitarray=[alltrait.apply(np.count_nonzero),top4trait.apply(np.count_nonzero),wintrait.apply(np.count_nonzero)]
+traitsheet=pd.DataFrame().join(traitarray, how="outer")
+traitsheet.columns = ['All','Top4','Win']
 
-alltrait.groupby(list(traitlist['Trait']+'Level')).size().reset_index(name='Count').sort_values(by='Count',ascending=False).to_csv('alltrait.csv')
-top4trait.groupby(list(traitlist['Trait']+'Level')).size().reset_index(name='Count').sort_values(by='Count',ascending=False).to_csv('top4trait.csv')
-wintrait.groupby(list(traitlist['Trait']+'Level')).size().reset_index(name='Count').sort_values(by='Count',ascending=False).to_csv('wintrait.csv')
+alltrait.apply(pd.Series.value_counts)
+top4trait.apply(pd.Series.value_counts)
+wintrait.apply(pd.Series.value_counts)
 
+alllevel=alltrait.groupby(list(traitlist['Trait']+'Level')).size().reset_index(name='All').sort_values(by='Count',ascending=False)
+top4level=top4trait.groupby(list(traitlist['Trait']+'Level')).size().reset_index(name='Top4').sort_values(by='Count',ascending=False)
+winlevel=wintrait.groupby(list(traitlist['Trait']+'Level')).size().reset_index(name='Win').sort_values(by='Count',ascending=False)
