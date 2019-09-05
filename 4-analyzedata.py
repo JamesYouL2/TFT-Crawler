@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import pygsheets
 
 df=pd.DataFrame()
 
@@ -49,15 +50,40 @@ wintrait=traitdf.loc[(traitdf['isRanked']) & (traitdf['standing'] < 1.5)].reset_
 championlist = [champ, top4, win]
 championsheet=pd.DataFrame().join(championlist, how="outer")
 championsheet.columns = ['All','Top4','Win']
+championsheet = championsheet.drop(['index','Unnamed: 0','summonerName','isRanked','win','standing'])
 
 traitarray=[alltrait.apply(np.count_nonzero),top4trait.apply(np.count_nonzero),wintrait.apply(np.count_nonzero)]
 traitsheet=pd.DataFrame().join(traitarray, how="outer")
 traitsheet.columns = ['All','Top4','Win']
+traitsheet = traitsheet.drop(['isRanked'])
 
-alltrait.apply(pd.Series.value_counts)
-top4trait.apply(pd.Series.value_counts)
-wintrait.apply(pd.Series.value_counts)
+#alltrait.apply(pd.Series.value_counts)
+#top4trait.apply(pd.Series.value_counts)
+#wintrait.apply(pd.Series.value_counts)
 
-alllevel=alltrait.groupby(list(traitlist['Trait']+'Level')).size().reset_index(name='All').sort_values(by='Count',ascending=False)
-top4level=top4trait.groupby(list(traitlist['Trait']+'Level')).size().reset_index(name='Top4').sort_values(by='Count',ascending=False)
-winlevel=wintrait.groupby(list(traitlist['Trait']+'Level')).size().reset_index(name='Win').sort_values(by='Count',ascending=False)
+traitlevellist = list(traitlist['Trait']+'Level')
+
+alllevel=alltrait.groupby(list(traitlist['Trait']+'Level')).size().reset_index(name='All')
+top4level=top4trait.groupby(list(traitlist['Trait']+'Level')).size().reset_index(name='Top4')
+winlevel=wintrait.groupby(list(traitlist['Trait']+'Level')).size().reset_index(name='Win')
+
+levelarray=[alllevel,top4level,winlevel]
+tmplevelsheet=alllevel.merge(top4level, left_on=traitlevellist, right_on=traitlevellist, how='left')
+levelsheet=tmplevelsheet.merge(winlevel, left_on=traitlevellist, right_on=traitlevellist, how='left')
+levelsheet=levelsheet.fillna(0)
+
+#Google Spreadsheet
+gc = pygsheets.authorize(service_file='./Test.json')
+
+#open the google spreadsheet (where 'PY to Gsheet Test' is the name of my sheet)
+sh = gc.open('TFTSheet')
+
+#Set Spreadsheet to df
+wks = sh[0]
+wks.set_dataframe(championsheet,(1,1),copy_index=True)
+
+wks1 = sh[1]
+wks1.set_dataframe(traitsheet,(1,1),copy_index=True)
+
+wks2 = sh[2]
+wks2.set_dataframe(levelsheet,(1,1))
