@@ -50,12 +50,28 @@ wintrait=traitdf.loc[(traitdf['isRanked']) & (traitdf['standing'] < 1.5)].reset_
 championlist = [champ, top4, win]
 championsheet=pd.DataFrame().join(championlist, how="outer")
 championsheet.columns = ['All','Top4','Win']
-championsheet = championsheet.drop(['index','Unnamed: 0','summonerName','isRanked','win','standing'])
+championsheet = championsheet.drop(['index','Unnamed: 0','summonerName','isRanked','win','id'])
+championsheet = championsheet.rename({"standing":"Total"})
 
 traitarray=[alltrait.apply(np.count_nonzero),top4trait.apply(np.count_nonzero),wintrait.apply(np.count_nonzero)]
 traitsheet=pd.DataFrame().join(traitarray, how="outer")
 traitsheet.columns = ['All','Top4','Win']
 traitsheet = traitsheet.drop(['isRanked'])
+traitsheet = traitsheet.rename({"standing":"Total"})
+
+allmelt = alltrait.melt().groupby(['variable', 'value']).size()
+top4melt = top4trait.melt().groupby(['variable', 'value']).size()
+winmelt = wintrait.melt().groupby(['variable', 'value']).size()
+
+meltarray=[allmelt,top4melt,winmelt]
+tmpmeltsheet=pd.DataFrame().join(meltarray, how='outer')
+tmpmeltsheet.reset_index(inplace=True)
+tmpmeltsheet.columns = ['TraitLevel','All','Top4','Win']
+meltcolumns=tmpmeltsheet['TraitLevel'].apply(pd.Series)
+meltsheet=meltcolumns.join(tmpmeltsheet,how='left')
+meltsheet.columns = ['Trait','Level','Tuple','All','Top4','Win']
+meltsheet=meltsheet[meltsheet['Trait'].str.contains('Level')]
+meltsheet=meltsheet.drop(columns='Tuple')
 
 #alltrait.apply(pd.Series.value_counts)
 #top4trait.apply(pd.Series.value_counts)
@@ -87,3 +103,6 @@ wks1.set_dataframe(traitsheet,(1,1),copy_index=True)
 
 wks2 = sh[2]
 wks2.set_dataframe(levelsheet,(1,1))
+
+wks2 = sh[3]
+wks3.set_dataframe(levelsheet,(1,1))
