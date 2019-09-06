@@ -104,5 +104,5 @@ wks1.set_dataframe(traitsheet,(1,1),copy_index=True)
 wks2 = sh[2]
 wks2.set_dataframe(levelsheet,(1,1))
 
-wks2 = sh[3]
+wks3 = sh[3]
 wks3.set_dataframe(levelsheet,(1,1))
