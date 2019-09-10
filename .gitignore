@@ -4,3 +4,4 @@ clean-games
 *.csv
 *.json
 config.ini
+data

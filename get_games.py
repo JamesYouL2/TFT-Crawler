@@ -45,4 +45,4 @@ for region in regions:
 							log.write(id+"\n")
 
 		print(i)
-		time.sleep(1)
+		time.sleep(.5)

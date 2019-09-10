@@ -11,7 +11,7 @@ Guardian	2	4
 Gunslinger	2	4	6
 Hextech	2	4	
 Imperial	2	4	
-Knight	2	4	
+Knight	2	4	6
 Ninja	1	4	
 Noble	3	6	
 Phantom	2		
