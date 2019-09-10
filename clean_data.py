@@ -11,9 +11,12 @@ config.read('config.ini')
 
 patch_time = parser.parse(config.get('setup', 'patch_time'))
 
-response = requests.get(config.get('default', 'champions_url'))
-champion_dict = response.json()
-champ_list = list(champion_dict.keys())
+#response = requests.get(config.get('default', 'champions_url'))
+#champion_dict = response.json()
+#champ_list = list(champion_dict.keys())
+
+champ_list = open("ChampList-order.txt").readlines()
+champ_list = list(map(lambda x: x[:-1], champ_list))
 
 regions = config.get('adjustable', 'regions').split(',')
 
