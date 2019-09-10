@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import pygsheets
+import datetime
 
 df=pd.DataFrame()
 
@@ -53,6 +54,13 @@ championsheet.columns = ['All','Top4','Win']
 championsheet = championsheet.drop(['index','Unnamed: 0','summonerName','isRanked','win','id'])
 championsheet = championsheet.rename({"standing":"Total"})
 
+championsheet['PercentAll']=100*championsheet['All']/championsheet['All']['Total']
+championsheet['PercentTop4']=100*championsheet['Top4']/championsheet['Top4']['Total']
+championsheet['PercentWin']=100*championsheet['Win']/championsheet['Win']['Total']
+
+championsheet['Top4AboveExpectation']=championsheet['PercentTop4']-championsheet['PercentAll']
+championsheet['WinAboveExpectation']=championsheet['PercentWin']-championsheet['PercentAll']
+
 traitarray=[alltrait.apply(np.count_nonzero),top4trait.apply(np.count_nonzero),wintrait.apply(np.count_nonzero)]
 traitsheet=pd.DataFrame().join(traitarray, how="outer")
 traitsheet.columns = ['All','Top4','Win']
@@ -96,13 +104,19 @@ sh = gc.open('TFTSheet')
 
 #Set Spreadsheet to df
 wks = sh[0]
-wks.set_dataframe(championsheet,(1,1),copy_index=True)
+wks.set_dataframe(championsheet.round(1).sort_values('All',ascending=False),(1,1),copy_index=True)
 
 wks1 = sh[1]
-wks1.set_dataframe(traitsheet,(1,1),copy_index=True)
+wks1.set_dataframe(traitsheet.sort_values('All',ascending=False),(1,1),copy_index=True)
 
 wks2 = sh[2]
-wks2.set_dataframe(levelsheet,(1,1))
+wks2.set_dataframe(levelsheet.sort_values('All',ascending=False),(1,1))
 
 wks3 = sh[3]
-wks3.set_dataframe(levelsheet,(1,1))
+wks3.set_dataframe(meltsheet,(1,1))
+
+wks4 = sh[4]
+header = wks4.cell('A1')
+header.value = 'Date Updated: ' + str(datetime.datetime.now()) 
+header.set_text_format('bold', True)
+header.update()
