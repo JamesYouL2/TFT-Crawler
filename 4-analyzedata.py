@@ -61,6 +61,8 @@ championsheet['PercentWin']=100*championsheet['Win']/championsheet['Win']['Total
 championsheet['Top4AboveExpectation']=championsheet['PercentTop4']-championsheet['PercentAll']
 championsheet['WinAboveExpectation']=championsheet['PercentWin']-championsheet['PercentAll']
 
+championsheet['AboveExpectation']=championsheet[['Top4AboveExpectation', 'WinAboveExpectation']].mean(axis=1)
+
 traitarray=[alltrait.apply(np.count_nonzero),top4trait.apply(np.count_nonzero),wintrait.apply(np.count_nonzero)]
 traitsheet=pd.DataFrame().join(traitarray, how="outer")
 traitsheet.columns = ['All','Top4','Win']
@@ -104,7 +106,7 @@ sh = gc.open('TFTSheet')
 
 #Set Spreadsheet to df
 wks = sh[0]
-wks.set_dataframe(championsheet.round(1).sort_values('All',ascending=False),(1,1),copy_index=True)
+wks.set_dataframe(championsheet.round(1).sort_values('AboveExpectation',ascending=False),(1,1),copy_index=True)
 
 wks1 = sh[1]
 wks1.set_dataframe(traitsheet.sort_values('All',ascending=False),(1,1),copy_index=True)
