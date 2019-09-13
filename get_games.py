@@ -7,42 +7,45 @@ import math
 import json
 import time
 
-config = configparser.ConfigParser()
-config.read('config.ini')
+def main():
+	monkey.patch_all(thread=False, select=False)
 
-regions = config.get('adjustable', 'regions').split(',')
+	config = configparser.ConfigParser()
+	config.read('config.ini')
 
-for region in regions:
-	mark_game = set()
+	regions = config.get('adjustable', 'regions').split(',')
 
-	ladder = open(config.get('setup', 'ladder_dir') + '/ladder-{}.txt'.format(region), "r", encoding="utf-8").readlines()
-	log = open('data/raw-games/log.txt', "w")
+	for region in regions:
+		mark_game = set()
 
-	urls = []
+		ladder = open(config.get('setup', 'ladder_dir') + '/ladder-{}.txt'.format(region), "r", encoding="utf-8").readlines()
+		log = open('data/raw-games/log.txt', "w")
 
-	for acc in ladder:
-		acc = acc[:-1]
-		urls.append('https://tft.iesdev.com/graphql?query=query summonerGames($name: String!, $region: String!, $cursor: String) { summoner(name: $name, region: $region) { id name puuid games(first: 20, after: $cursor) { edges { node { id createdAt length queueId isRanked players } } pageInfo { endCursor hasNextPage } } } } &variables={"name": "'+acc+'","region":"'+region+'"}')
+		urls = []
 
-	batches = 20
-	urls = [urls[i::batches] for i in range(batches)]
+		for acc in ladder:
+			acc = acc[:-1]
+			urls.append('https://tft.iesdev.com/graphql?query=query summonerGames($name: String!, $region: String!, $cursor: String) { summoner(name: $name, region: $region) { id name puuid games(first: 20, after: $cursor) { edges { node { id createdAt length queueId isRanked players } } pageInfo { endCursor hasNextPage } } } } &variables={"name": "'+acc+'","region":"'+region+'"}')
 
-	for i in range(batches):
-		rs = (grequests.get(url) for url in urls[i])
-		rs_map = grequests.map(rs)
-		for response in rs_map:
-			if response.status_code == 200:
-				data = response.json()["data"]["summoner"]
-				if data is not None:
-					edges = data["games"]["edges"]
-					for game in edges:
-						info = game["node"]
-						id = info["id"]
-						if id not in mark_game:
-							mark_game.add(id)
-							with open(config.get('setup', 'raw_data_dir') + '/{}/{}.json'.format(region,id), "w") as file:
-								file.write(json.dumps(info))
-							log.write(id+"\n")
+		batches = 20
+		urls = [urls[i::batches] for i in range(batches)]
 
-		print(i)
-		time.sleep(.1)
+		for i in range(batches):
+			rs = (grequests.get(url) for url in urls[i])
+			rs_map = grequests.map(rs)
+			for response in rs_map:
+				if response.status_code == 200:
+					data = response.json()["data"]["summoner"]
+					if data is not None:
+						edges = data["games"]["edges"]
+						for game in edges:
+							info = game["node"]
+							id = info["id"]
+							if id not in mark_game:
+								mark_game.add(id)
+								with open(config.get('setup', 'raw_data_dir') + '/{}/{}.json'.format(region,id), "w") as file:
+									file.write(json.dumps(info))
+								log.write(id+"\n")
+
+			print(i)
+			time.sleep(.1)

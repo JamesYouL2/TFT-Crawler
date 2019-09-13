@@ -6,3 +6,4 @@ clean-games
 config.ini
 data
 log.txt
+__pycache__
