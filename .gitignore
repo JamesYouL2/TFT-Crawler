@@ -5,3 +5,4 @@ clean-games
 *.json
 config.ini
 data
+log.txt

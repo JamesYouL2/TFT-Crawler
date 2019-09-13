@@ -19,4 +19,4 @@ for region in regions:
 				players = [file.write(entry['summonerName'] + '\n') for entry in entries]
 		except:
 			print("something failed")
-		time.sleep(1)
+		time.sleep(.1)
