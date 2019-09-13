@@ -5,7 +5,7 @@ import datetime
 
 df=pd.DataFrame()
 
-for region in ["na1", "euw1"]:
+for region in ["na1", "euw1", "kr"]:
     tmp=pd.read_csv("data/clean-games/{}.csv".format(region), encoding="utf-8")
     df=df.append(tmp)
 
