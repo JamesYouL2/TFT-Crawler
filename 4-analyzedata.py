@@ -52,6 +52,16 @@ for trait in traitlist['Trait']:
     traitdf[traitlevel]= np.where(df[trait] >= float(traitlist.loc[traitlist['Trait']==trait]['Level2']),2,traitdf[traitlevel])
     traitdf[traitlevel]= np.where(df[trait] >= float(traitlist.loc[traitlist['Trait']==trait]['Level3']),3,traitdf[traitlevel])
 
+standingtraitdf=traitdf.replace([2,3],1).groupby('standing').sum().reset_index()
+traittotalstanding=standingtraitdf.mul(standingtraitdf['standing'],axis=0).sum()
+
+traitsum=standingtraitdf.sum()
+
+avgtraitdf=pd.concat([traittotalstanding,traitsum],axis=1)
+avgtraitdf.columns = ['TotalStanding','Sum']
+
+avgtraitdf['AverageRank'] = avgtraitdf['TotalStanding'] / avgtraitdf['Sum']
+
 #Trait Analysis
 alltrait=traitdf.loc[traitdf['isRanked']].reset_index(drop=True)
 top4trait=traitdf.loc[(traitdf['isRanked']) & (traitdf['standing'] < 4.5)].reset_index(drop=True)
@@ -79,6 +89,8 @@ traitsheet.columns = ['All','Top4','Win']
 traitsheet = traitsheet.drop(['isRanked'])
 traitsheet = traitsheet.rename({"standing":"Total"})
 
+traitsheet=traitsheet.join(avgtraitdf['AverageRank'],how="left")
+
 allmelt = alltrait.melt().groupby(['variable', 'value']).size()
 top4melt = top4trait.melt().groupby(['variable', 'value']).size()
 winmelt = wintrait.melt().groupby(['variable', 'value']).size()
@@ -92,12 +104,21 @@ meltsheet=meltcolumns.join(tmpmeltsheet,how='left')
 meltsheet.columns = ['Trait','Level','Tuple','All','Top4','Win']
 meltsheet=meltsheet[meltsheet['Trait'].str.contains('Level')]
 meltsheet=meltsheet.drop(columns='Tuple')
+meltsheet=meltsheet.fillna(0)
 
 #alltrait.apply(pd.Series.value_counts)
 #top4trait.apply(pd.Series.value_counts)
 #wintrait.apply(pd.Series.value_counts)
 
 traitlevellist = list(traitlist['Trait']+'Level')
+traitlevellist.append('standing')
+
+traitleveldf=alltrait.groupby(traitlevellist).size().reset_index(name='All')
+traitleveldf['TotalStanding']=traitleveldf['standing']*traitleveldf['All']
+traitgroup=traitleveldf.groupby(list(traitlist['Trait']+'Level'))
+traitgroupavg=pd.DataFrame(traitgroup['TotalStanding'].sum()/traitgroup['All'].sum()).reset_index()
+
+traitlevellist.remove('standing')
 
 alllevel=alltrait.groupby(list(traitlist['Trait']+'Level')).size().reset_index(name='All')
 top4level=top4trait.groupby(list(traitlist['Trait']+'Level')).size().reset_index(name='Top4')
@@ -107,6 +128,8 @@ levelarray=[alllevel,top4level,winlevel]
 tmplevelsheet=alllevel.merge(top4level, left_on=traitlevellist, right_on=traitlevellist, how='left')
 levelsheet=tmplevelsheet.merge(winlevel, left_on=traitlevellist, right_on=traitlevellist, how='left')
 levelsheet=levelsheet.fillna(0)
+levelsheet=levelsheet.merge(traitgroupavg,left_on=traitlevellist, right_on=traitlevellist)
+levelsheet=levelsheet.rename(columns={0: "AverageRank"})
 
 #Google Spreadsheet
 gc = pygsheets.authorize(service_file='./Test.json')
@@ -116,7 +139,7 @@ sh = gc.open('TFTSheet')
 
 #Set Spreadsheet to df
 wks = sh[0]
-wks.set_dataframe(championsheet.round(1).sort_values('AverageRank',ascending=True),(1,1),copy_index=True)
+wks.set_dataframe(championsheet.round(1).sort_values('All',ascending=False),(1,1),copy_index=True)
 
 wks1 = sh[1]
 wks1.set_dataframe(traitsheet.sort_values('All',ascending=False),(1,1),copy_index=True)
