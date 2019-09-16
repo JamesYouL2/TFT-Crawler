@@ -13,6 +13,7 @@ df=df.reset_index()
 
 #Calculate Synergies
 champlisttrait = pd.read_csv("champlist-trait.txt",sep='-')
+champlistgold = pd.read_csv("champlist-gold.txt",sep='\t')
 unstack=pd.DataFrame(champlisttrait[['Trait1','Trait2','Trait3']].unstack())
 unstack['champno']=unstack[0].index.get_level_values(1)
 
@@ -28,7 +29,14 @@ champ=df.loc[df['isRanked']].apply(np.count_nonzero)
 top4=df.loc[(df['isRanked']) & (df['standing'] < 4.5)].apply(np.count_nonzero)
 win=df.loc[(df['isRanked']) & (df['standing'] < 1.5)].apply(np.count_nonzero)
 
+weightedstanding=pd.DataFrame(1/df.groupby('standing').size(),columns=['WeightedStanding'])
+weightedstanding=weightedstanding/weightedstanding.sum()
+df=df.merge(weightedstanding,left_on='standing',right_on='standing')
+
 standingdf=df.loc[df['isRanked']].groupby('standing').sum().reset_index()
+standingdf.index = np.arange(1, len(standingdf) + 1)
+origstanding = standingdf['standing']
+standingdf=standingdf.multiply(weightedstanding['WeightedStanding'],axis=0)
 champtotalstanding=standingdf.mul(standingdf['standing'],axis=0).sum()
 
 champsum=standingdf.sum()
@@ -82,6 +90,8 @@ championsheet['Top4AboveExpectation']=championsheet['PercentTop4']-championsheet
 championsheet['WinAboveExpectation']=championsheet['PercentWin']-championsheet['PercentAll']
 
 championsheet=championsheet.join(avgdf['AverageRank'],how="left")
+championsheet=championsheet.merge(champlistgold,how="left",left_index=True,right_on='Champion')
+championsheet.set_index('Champion',inplace=True)
 
 traitarray=[alltrait.apply(np.count_nonzero),top4trait.apply(np.count_nonzero),wintrait.apply(np.count_nonzero)]
 traitsheet=pd.DataFrame().join(traitarray, how="outer")
@@ -95,6 +105,12 @@ allmelt = alltrait.melt().groupby(['variable', 'value']).size()
 top4melt = top4trait.melt().groupby(['variable', 'value']).size()
 winmelt = wintrait.melt().groupby(['variable', 'value']).size()
 
+avgmelt=alltrait.melt(id_vars='standing').groupby(['standing','variable', 'value']).size().reset_index()
+avgmelt['totalstanding']=avgmelt['standing']*avgmelt[0]
+avgmeltarray=avgmelt.groupby(['variable','value']).sum().reset_index()
+avgmeltarray['value']=avgmeltarray['value'].apply(int)
+avgmeltarray['AverageRank']=avgmeltarray['totalstanding']/avgmeltarray[0]
+
 meltarray=[allmelt,top4melt,winmelt]
 tmpmeltsheet=pd.DataFrame().join(meltarray, how='outer')
 tmpmeltsheet.reset_index(inplace=True)
@@ -105,6 +121,8 @@ meltsheet.columns = ['Trait','Level','Tuple','All','Top4','Win']
 meltsheet=meltsheet[meltsheet['Trait'].str.contains('Level')]
 meltsheet=meltsheet.drop(columns='Tuple')
 meltsheet=meltsheet.fillna(0)
+meltsheet=meltsheet.merge(avgmeltarray[['AverageRank', 'variable', 'value']],left_on=['Trait','Level'],right_on=['variable','value'])
+meltsheet=meltsheet.drop(columns=['variable','value'])
 
 #alltrait.apply(pd.Series.value_counts)
 #top4trait.apply(pd.Series.value_counts)
@@ -142,13 +160,13 @@ wks = sh[0]
 wks.set_dataframe(championsheet.round(1).sort_values('All',ascending=False),(1,1),copy_index=True)
 
 wks1 = sh[1]
-wks1.set_dataframe(traitsheet.sort_values('All',ascending=False),(1,1),copy_index=True)
+wks1.set_dataframe(traitsheet.round(2).sort_values('All',ascending=False),(1,1),copy_index=True)
 
 wks2 = sh[2]
-wks2.set_dataframe(levelsheet.sort_values('All',ascending=False),(1,1))
+wks2.set_dataframe(levelsheet.round(2).sort_values('All',ascending=False),(1,1))
 
 wks3 = sh[3]
-wks3.set_dataframe(meltsheet,(1,1))
+wks3.set_dataframe(meltsheet.round(2),(1,1))
 
 wks4 = sh[4]
 header = wks4.cell('A1')

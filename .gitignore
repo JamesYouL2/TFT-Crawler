@@ -7,3 +7,5 @@ config.ini
 data
 log.txt
 __pycache__
+config.ini
+log.txt
