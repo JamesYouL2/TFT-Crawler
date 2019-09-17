@@ -11,8 +11,6 @@ for region in ["na1", "euw1"]:
 
 df=df.reset_index()
 
-df=df.loc[df[champlistgold['Champion']].sum(axis=1)>0]
-
 #Calculate Synergies
 champlisttrait = pd.read_csv("champlist-trait.txt",sep='-')
 champlistgold = pd.read_csv("champlist-gold.txt",sep='\t')
@@ -22,6 +20,9 @@ unstack['champno']=unstack[0].index.get_level_values(1)
 champtrait=pd.merge(champlisttrait['Champion'],unstack,left_index=True,right_on='champno')[['Champion',0]]
 champtrait=champtrait.loc[champtrait[0].notna()]
 champtrait=champtrait.rename(columns={0: "Trait"})
+
+#Eliminate junk data
+df=df.loc[df[champlistgold['Champion']].sum(axis=1)>0]
 
 #Get number of trait
 traitlist = pd.read_csv("Traitlist2.txt",sep='\t')
@@ -40,7 +41,6 @@ for trait in traitlist['Trait']:
 
 #FIX DF FOR WEIGHTINGS
 weightedstanding=pd.DataFrame(1/df.groupby('standing').size(),columns=['WeightedStanding'])
-weightedstanding=weightedstanding/weightedstanding.sum()
 df=df.merge(weightedstanding,left_on='standing',right_on='standing')
 
 standingdf=df.loc[df['isRanked']].groupby('standing').sum().reset_index()
@@ -63,7 +63,7 @@ top4=champdf.loc[(df['isRanked']) & (df['standing'] < 4.5)].apply(np.count_nonze
 win=champdf.loc[(df['isRanked']) & (df['standing'] < 1.5)].apply(np.count_nonzero)
 
 #Trait Analysis
-traitdf = df[traitlist['Trait'].append(pd.Series('standing'))]
+traitdf = df[traitlist['Trait'].append(pd.Series(['standing','WeightedStanding']))]
 alltrait=traitdf.loc[df['isRanked']].reset_index(drop=True)
 top4trait=traitdf.loc[(df['isRanked']) & (df['standing'] < 4.5)].reset_index(drop=True)
 wintrait=traitdf.loc[(df['isRanked']) & (df['standing'] < 1.5)].reset_index(drop=True)
@@ -94,30 +94,44 @@ traitsheet = traitsheet.rename({"standing":"Total"})
 traitsheet=traitsheet.join(avgdf['AverageRank'],how="left")
 
 #GetTraitLevelSheet
-traitlevellist = pd.Series(traitlist['Trait']+'Level')
+traitlevellist = list(traitlist['Trait']+'Level')
+traitlevellist.append('standing')
+traitlevellist.append('WeightedStanding')
 
-traitleveldf = df[traitlevellist.append(pd.Series('standing'))]
+traitleveldf=df.groupby(traitlevellist).size().reset_index(name='All')
 
-alllevel=traitleveldf.loc[df['isRanked']].reset_index(drop=True)
-top4level=traitleveldf.loc[(df['isRanked']) & (df['standing'] < 4.5)].reset_index(drop=True)
-winlevel=traitleveldf.loc[(df['isRanked']) & (df['standing'] < 1.5)].reset_index(drop=True)
+traitleveldf['TotalStanding']=traitleveldf['standing']*traitleveldf['All']*traitleveldf['WeightedStanding']
+traitleveldf['WeightedSum']=traitleveldf['All']*traitleveldf['WeightedStanding']
+traitgroup=traitleveldf.groupby(list(traitlist['Trait']+'Level'))
+traitgroupavg=pd.DataFrame(traitgroup['TotalStanding'].sum()/traitgroup['WeightedSum'].sum()).reset_index()
+
+traitlevellist.remove('standing')
+traitlevellist.remove('WeightedStanding')
+
+alllevel=df[df['isRanked']].groupby(list(traitlist['Trait']+'Level')).size().reset_index(name='All')
+top4level=df[(df['isRanked']) & (df['standing'] < 4.5)].groupby(list(traitlist['Trait']+'Level')).size().reset_index(name='Top4')
+winlevel=df[(df['isRanked']) & (df['standing'] < 1.5)].groupby(list(traitlist['Trait']+'Level')).size().reset_index(name='Win')
 
 levelarray=[alllevel,top4level,winlevel]
-tmplevelsheet=alllevel.merge(top4level, left_on=traitlevellist, right_on=traitlevellist, how='outer')
+tmplevelsheet=alllevel.merge(top4level, left_on=traitlevellist, right_on=traitlevellist, how='left')
 levelsheet=tmplevelsheet.merge(winlevel, left_on=traitlevellist, right_on=traitlevellist, how='left')
 levelsheet=levelsheet.fillna(0)
-levelsheet=levelsheet.merge(avgdf,left_on=traitlevellist, right_on=traitlevellist)
+levelsheet=levelsheet.merge(traitgroupavg,left_on=traitlevellist, right_on=traitlevellist)
 levelsheet=levelsheet.rename(columns={0: "AverageRank"})
 
-allmelt = alltrait.melt().groupby(['variable', 'value']).size()
-top4melt = top4trait.melt().groupby(['variable', 'value']).size()
-winmelt = wintrait.melt().groupby(['variable', 'value']).size()
+allmelt = df[df['isRanked']][traitlevellist].melt().groupby(['variable', 'value']).size()
+top4melt = df[(df['isRanked']) & (df['standing'] < 4.5)].melt().groupby(['variable', 'value']).size()
+winmelt = df[(df['isRanked']) & (df['standing'] < 1.5)].melt().groupby(['variable', 'value']).size()
 
-avgmelt=alltrait.melt(id_vars='standing').groupby(['standing','variable', 'value']).size().reset_index()
-avgmelt['totalstanding']=avgmelt['standing']*avgmelt[0]
+traitlevellist.append('standing')
+traitlevellist.append('WeightedStanding')
+
+avgmelt=df[df['isRanked']][traitlevellist].melt(id_vars=['standing','WeightedStanding']).groupby(['WeightedStanding','standing','variable', 'value']).size().reset_index()
+avgmelt['totalstanding']=avgmelt['standing']*avgmelt[0]*avgmelt['WeightedStanding']
+avgmelt['WeightedSum']=avgmelt[0]*avgmelt['WeightedStanding']
 avgmeltarray=avgmelt.groupby(['variable','value']).sum().reset_index()
 avgmeltarray['value']=avgmeltarray['value'].apply(int)
-avgmeltarray['AverageRank']=avgmeltarray['totalstanding']/avgmeltarray[0]
+avgmeltarray['AverageRank']=avgmeltarray['totalstanding']/avgmeltarray['WeightedSum']
 
 meltarray=[allmelt,top4melt,winmelt]
 tmpmeltsheet=pd.DataFrame().join(meltarray, how='outer')
