@@ -164,7 +164,7 @@ wks1 = sh[1]
 wks1.set_dataframe(traitsheet.round(2).sort_values('All',ascending=False),(1,1),copy_index=True)
 
 wks2 = sh[2]
-wks2.set_dataframe(levelsheet.round(2).sort_values('All',ascending=False),(1,1))
+wks2.set_dataframe(levelsheet.round(2).sort_values('Win',ascending=False),(1,1))
 
 wks3 = sh[3]
 wks3.set_dataframe(meltsheet.round(2),(1,1))
