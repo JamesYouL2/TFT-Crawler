@@ -4,7 +4,11 @@ import seaborn as sns
 clusterdf = df
 clusterdf['TotalWeightedStanding']=clusterdf['WeightedStanding']*clusterdf['standing']
 
-hdb = hdbscan.HDBSCAN(min_cluster_size=int(np.floor(len(clusterdf)/25)), min_samples=int(np.floor(len(clusterdf)/500)))
+hdb = hdbscan.HDBSCAN(min_cluster_size=
+int(np.floor(len(clusterdf)/40)), 
+min_samples=int(np.floor(len(clusterdf)/500)),
+cluster_selection_method='eom')
+
 columns = ['Camille', 'Darius', 'Elise', 'Fiora', 'Garen',
 'Graves', 'Kassadin', "Kha'Zix", 'Mordekaiser', 'Nidalee', 'Tristana',
 'Vayne', 'Warwick', 'Ahri', 'Blitzcrank', 'Braum', 'Jayce', 'Lissandra',

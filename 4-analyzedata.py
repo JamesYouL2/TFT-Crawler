@@ -63,7 +63,7 @@ top4=champdf.loc[(df['isRanked']) & (df['standing'] < 4.5)].apply(np.count_nonze
 win=champdf.loc[(df['isRanked']) & (df['standing'] < 1.5)].apply(np.count_nonzero)
 
 #Trait Analysis
-traitdf = df[traitlist['Trait'].append(pd.Series(['standing','WeightedStanding']))]
+traitdf = df[(traitlist['Trait']+'Level').append(pd.Series(['standing','WeightedStanding']))]
 alltrait=traitdf.loc[df['isRanked']].reset_index(drop=True)
 top4trait=traitdf.loc[(df['isRanked']) & (df['standing'] < 4.5)].reset_index(drop=True)
 wintrait=traitdf.loc[(df['isRanked']) & (df['standing'] < 1.5)].reset_index(drop=True)
@@ -119,6 +119,8 @@ levelsheet=levelsheet.fillna(0)
 levelsheet=levelsheet.merge(traitgroupavg,left_on=traitlevellist, right_on=traitlevellist)
 levelsheet=levelsheet.rename(columns={0: "AverageRank"})
 
+
+#Melt Sheet
 allmelt = df[df['isRanked']][traitlevellist].melt().groupby(['variable', 'value']).size()
 top4melt = df[(df['isRanked']) & (df['standing'] < 4.5)].melt().groupby(['variable', 'value']).size()
 winmelt = df[(df['isRanked']) & (df['standing'] < 1.5)].melt().groupby(['variable', 'value']).size()
