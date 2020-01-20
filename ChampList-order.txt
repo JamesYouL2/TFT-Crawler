@@ -54,3 +54,4 @@ Miss Fortune
 Pantheon
 Swain
 Yasuo
+Kai'Sa

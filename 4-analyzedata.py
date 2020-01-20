@@ -11,6 +11,8 @@ for region in ["na1", "euw1"]:
 
 df=df.reset_index()
 
+print(len(df))
+
 #Calculate Synergies
 champlisttrait = pd.read_csv("champlist-trait.txt",sep='-')
 champlistgold = pd.read_csv("champlist-gold.txt",sep='\t')
@@ -171,7 +173,7 @@ wks2.set_dataframe(levelsheet.round(2).sort_values('Win',ascending=False),(1,1))
 wks3 = sh[3]
 wks3.set_dataframe(meltsheet.round(2),(1,1))
 
-wks4 = sh[4]
+wks4 = sh[5]
 header = wks4.cell('A1')
 header.value = 'Date Updated: ' + str(datetime.datetime.now()) 
 header.set_text_format('bold', True)

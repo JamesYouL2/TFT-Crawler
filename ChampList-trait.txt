@@ -55,3 +55,4 @@ Miss Fortune-Pirate-Gunslinger
 Pantheon-Dragon-Guardian
 Swain-Demon-Shapeshifter-Imperial
 Yasuo-Blademaster-Exile
+Kai'Sa-Void-Ranger-Assassin

@@ -55,3 +55,4 @@ Miss Fortune	5
 Pantheon	5
 Swain	5
 Yasuo	5
+Kai'Sa	5
