@@ -13,6 +13,7 @@ def main():
 		file = open(config.get('setup', 'ladder_dir') + '/ladder-{}.txt'.format(region), "w", encoding="utf-8")
 		for league in leagues:
 			url = config.get('default', 'ladder_url').format(region, league, config.get('setup', 'api_key'))
+			print(url)
 			try:
 				response = requests.get(url)
 				if(response.status_code == 200):
