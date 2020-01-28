@@ -47,6 +47,7 @@ for region in regions:
             if (response.status_code == 200):
                 common.at[index, 'date']=datetime.now()
                 matchhistory=matchhistory.append(pd.Series(response.json()))
+                matchhistory=pd.Series(matchhistory.unique())
         
             if (response.status_code == 429):
                 time.sleep(120)
