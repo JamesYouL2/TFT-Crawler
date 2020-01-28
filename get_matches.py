@@ -3,6 +3,7 @@ import json
 import time
 import pandas as pd
 import requests
+from datetime import datetime, timedelta
 
 config = configparser.ConfigParser()
 config.read('config.ini')
@@ -17,25 +18,26 @@ for region in regions:
     puuid = pd.read_csv(puuidfile)
 
     matchhistoryfile = config.get('setup','ladder_dir') + '/matchhistory-{}.txt'.format(region)
-    matchhistory = pd.read_csv(matchhistoryfile)
+    matchhistory = pd.read_csv(matchhistoryfile, squeeze=True)
 
     matchhistorydatefile = config.get('setup','ladder_dir') + '/matchhistorydate-{}.txt'.format(region)
     matchhistorydate = pd.read_csv(matchhistorydatefile)
 
     common = ladder.merge(puuid,on=['summonerName'], how='left')
-    common = common.merge(puuid,on='puuid',how='left')
-    common = common[common['puuid'].isnull()]
+    common = common.merge(matchhistorydate,on='puuid',how='left')
+    common['date'] = common['date'].fillna(value=datetime.now() - timedelta(days=365))
+    common = common.loc[pd.to_datetime(common['date']) < (datetime.now() - timedelta(days=2))]
     
     for index, row in common.iterrows():
-        value = row['summonerName']
+        value = row['puuid']
         
-        if region in ('NA1', 'BR1', 'LA1', 'LA2', 'OC1'):
+        if region in ('na1', 'br1', 'la1', 'la2', 'oc1'):
             superregion = 'americas'
         
-        if region in ('EUN1', 'EUW1', 'RU', 'TR1'):
+        if region in ('eun1', 'euw1', 'ru', 'tr1'):
             superregion = 'europe'
         
-        if region in ('KR', 'JP'):
+        if region in ('kr', 'jp'):
             superregion = 'asia'
         
         url = config.get('default', 'matches_url').format(superregion, value, config.get('setup', 'api_key'))
@@ -43,10 +45,11 @@ for region in regions:
         try:
             response = requests.get(url)
             if (response.status_code == 200):
-                common.at[index, 'matchhistorydate']=datetime.datetime.now()
+                common.at[index, 'date']=datetime.now()
+                matchhistory=matchhistory.append(pd.Series(response.json()))
         
             if (response.status_code == 429):
-                time.wait(120)
+                time.sleep(120)
         
             if (response.status_code not in (200,429)):
                 print(response.status_code)
@@ -59,5 +62,6 @@ for region in regions:
         
         time.sleep(.2)
 
-    alldf=common.append(puuid).drop_duplicates('summonerName')
-    alldf.to_csv(puuidfile,index=None)
+    matchhistorydate=common[['date','puuid']].append(matchhistorydate).drop_duplicates('puuid')
+    matchhistorydate.to_csv(matchhistorydatefile,index=None)
+    pd.Series(matchhistory.unique()).to_csv(matchhistoryfile,index=False)
