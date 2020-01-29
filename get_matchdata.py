@@ -21,7 +21,8 @@ for region in regions:
     onlyfiles['matchid_fromfile']=onlyfiles['matchid_fromfile'].str.split('.',expand=True)[0]
 
     common = pd.merge(matchhistory,onlyfiles,how='left',left_on='matchid',right_on='matchid_fromfile')
-    common = common.loc[common['matchid_fromfile'].isnull()]
+    common = common.loc[common['matchid_fromfile'].isnull()].sort_values('matchid',ascending=False)
+    common = common.loc[common['matchid'].str.split('_',expand=True)[0]==region.upper()]
 
     for index, row in common.iterrows():
         value = row['matchid']
@@ -37,16 +38,21 @@ for region in regions:
         try:
             response = requests.get(url)
             if (response.status_code == 200):
-                break
+                with open(config.get('setup', 'raw_data_dir') + '/{}/{}.json'.format(region,value), "w") as file:
+                    file.write(json.dumps(response.json()['info']))
+                    if(response.json()['info']['game_datetime'] < (datetime.now() - timedelta(days=5))):
+                        break
+
             if (response.status_code == 429):
                 time.sleep(120)
+            
             if (response.status_code not in (200,429)):
                 print(response.status_code)
                 break
 
         except:
             print("something failed")
-            print(sys.exc_info()[0])
+            print(sys.exc_info())
             break
         
         time.sleep(.2)
