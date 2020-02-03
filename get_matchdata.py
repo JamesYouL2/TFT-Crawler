@@ -40,7 +40,7 @@ for region in regions:
             if (response.status_code == 200):
                 with open(config.get('setup', 'raw_data_dir') + '/{}/{}.json'.format(region,value), "w") as file:
                     file.write(json.dumps(response.json()['info']))
-                    if(response.json()['info']['game_datetime'] < (datetime.now() - timedelta(days=5))):
+                    if(datetime.fromtimestamp(response.json()['info']['game_datetime'] / 1e3) < (datetime.now() - timedelta(days=5))):
                         break
 
             if (response.status_code == 429):
