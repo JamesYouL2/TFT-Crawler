@@ -1,8 +1,12 @@
+####
+#2. Gets Puuids for Summoner Names in ladder
+####
 import configparser
 import json
 import time
 import pandas as pd
 import requests
+import sys
 
 config = configparser.ConfigParser()
 config.read('config.ini')
@@ -24,7 +28,9 @@ for region in regions:
             response = requests.get(url)
             if (response.status_code == 200):
                 common.at[index, 'puuid']=response.json()['puuid']
-            if (response.status_code != 200):
+            elif (response.status_code == 429):
+                time.sleep(120)
+            else:
                 print(response.status_code)
                 break
         except:

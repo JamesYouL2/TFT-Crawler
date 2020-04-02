@@ -7,6 +7,8 @@ from datetime import datetime, timedelta
 from os import listdir
 from os.path import isfile, join
 import numpy as np
+from pathlib import Path
+import sys
 
 config = configparser.ConfigParser()
 config.read('config.ini')
@@ -16,9 +18,13 @@ for region in regions:
     matchhistoryfile = config.get('setup','ladder_dir') + '/matchhistory-{}.txt'.format(region)
     matchhistory = pd.read_csv(matchhistoryfile,header=None, names=['matchid'])
 
+    
     gamespath = config.get('setup','raw_data_dir') + '/{}/'.format(region)
+    Path(gamespath).mkdir(parents=True, exist_ok=True)
+
     onlyfiles = pd.DataFrame([f for f in listdir(gamespath) if isfile(join(gamespath, f))],columns=['matchid_fromfile'])
-    onlyfiles['matchid_fromfile']=onlyfiles['matchid_fromfile'].str.split('.',expand=True)[0]
+    if len(onlyfiles) > 0:
+        onlyfiles['matchid_fromfile']=onlyfiles['matchid_fromfile'].str.split('.',expand=True)[0]
 
     common = pd.merge(matchhistory,onlyfiles,how='left',left_on='matchid',right_on='matchid_fromfile')
     common = common.loc[common['matchid_fromfile'].isnull()].sort_values('matchid',ascending=False)

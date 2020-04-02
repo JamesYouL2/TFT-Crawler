@@ -1,6 +1,7 @@
 import configparser
 import requests
 import time
+from pathlib import Path
 
 def main():
 	config = configparser.ConfigParser()
@@ -9,6 +10,7 @@ def main():
 	regions = config.get('adjustable', 'regions').split(',')
 	leagues = config.get('adjustable', 'leagues').split(',')
 
+	Path(config.get('setup', 'ladder_dir')).mkdir(parents=True, exist_ok=True)
 	for region in regions:
 		file = open(config.get('setup', 'ladder_dir') + '/ladder-{}.txt'.format(region), "w", encoding="utf-8")
 		for league in leagues:
@@ -16,7 +18,8 @@ def main():
 			print(url)
 			try:
 				response = requests.get(url)
-				if(response.status_code == 200):
+				response.raise_for_status()
+				if (response.status_code == 200):
 					entries = response.json()['entries']
 					players = [file.write(entry['summonerName'] + '\n') for entry in entries]
 			except:

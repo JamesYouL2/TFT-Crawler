@@ -7,6 +7,7 @@ import math
 import json
 import time
 import pandas as pd
+from pathlib import Path
 
 def main():
 	monkey.patch_all(thread=False, select=False)
@@ -20,7 +21,7 @@ def main():
 		mark_game = set()
 
 		ladder = open(config.get('setup', 'ladder_dir') + '/ladder-{}.txt'.format(region), "r", encoding="utf-8").readlines()
-		log = open('data/raw-games/log.txt', "w")
+		log = open('data/raw-games/log.txt', "w+")
 
 		urls = []
 
