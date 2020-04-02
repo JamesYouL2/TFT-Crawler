@@ -91,7 +91,7 @@ for region in regions:
         
         time.sleep(.2)
 
-    #Get File of Puuids
+    #Send file 
     matchhistorydate=common[['date','puuid']].append(matchhistorydate).drop_duplicates('puuid')
     matchhistorydate.to_csv(matchhistorydatefile,index=None)
     pd.Series(matchhistory.unique()).to_csv(matchhistoryfile,index=False)
