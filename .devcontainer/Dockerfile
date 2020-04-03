@@ -51,6 +51,7 @@ RUN apt-get update \
 RUN pip install grequests
 EXPOSE 5000
 RUN pip install pandas==1.0.3
+RUN conda install -c conda-forge hdbscan
 
 # Switch back to dialog for any ad-hoc use of apt-get
 ENV DEBIAN_FRONTEND=dialog

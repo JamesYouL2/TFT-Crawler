@@ -6,7 +6,8 @@ import configparser
 import json
 import os
 import requests
-
+import numpy as np
+import hdbscan
 from dateutil import parser
 
 config = configparser.ConfigParser()
@@ -47,3 +48,16 @@ df=json_normalize(allrecords)
 df=df.loc[df['game_version']==df['game_version'].max()]
 
 combinepivot.merge(df,on='match_id')[combinepivot.columns]
+
+hdb = hdbscan.HDBSCAN(min_cluster_size=
+int(np.floor(len(combinepivot)/15)), 
+min_samples=1,
+cluster_selection_method='leaf')
+
+cols=list(combinepivot.columns)
+
+clusterer=hdb.fit(combinepivot)
+combinepivot['hdb'] = pd.Series(hdb.labels_+1, index=combinepivot.index)
+print(combinepivot['hdb'].value_counts())
+plot = clusterer.condensed_tree_.plot(select_clusters=True,
+                               selection_palette=sns.color_palette('deep', 8))
