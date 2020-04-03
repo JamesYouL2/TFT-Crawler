@@ -47,17 +47,27 @@ combinepivot = unitspivot.join(traitspivot).reset_index()
 df=json_normalize(allrecords)
 df=df.loc[df['game_version']==df['game_version'].max()]
 
-combinepivot.merge(df,on='match_id')[combinepivot.columns]
+clusterdf=combinepivot.merge(df,on='match_id')[combinepivot.columns]
 
 hdb = hdbscan.HDBSCAN(min_cluster_size=
-int(np.floor(len(combinepivot)/15)), 
+int(np.floor(len(clusterdf)/10)), 
 min_samples=1,
 cluster_selection_method='leaf')
 
-cols=list(combinepivot.columns)
+cols=list(clusterdf.columns)
+cols.remove('match_id')
+cols.remove('participants.placement')
 
-clusterer=hdb.fit(combinepivot)
-combinepivot['hdb'] = pd.Series(hdb.labels_+1, index=combinepivot.index)
-print(combinepivot['hdb'].value_counts())
-plot = clusterer.condensed_tree_.plot(select_clusters=True,
-                               selection_palette=sns.color_palette('deep', 8))
+print(cols)
+
+clusterer=hdb.fit(clusterdf[cols].fillna(0))
+clusterdf['hdb'] = pd.Series(hdb.labels_+1, index=clusterdf.index)
+plot = clusterer.condensed_tree_.plot(select_clusters=True)
+
+unitscol=list(unitspivot.columns)
+traitscol=list(traitspivot.columns)
+
+print(clusterdf['hdb'].value_counts())
+print(clusterdf.groupby('hdb')[unitscol].mean().idxmax(axis=1))
+print(clusterdf.groupby('hdb')[traitscol].mean().idxmax(axis=1))
+print(clusterdf.groupby('hdb')['participants.placement'].mean())
