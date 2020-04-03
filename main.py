@@ -16,5 +16,10 @@ print ("Get Ladder")
 get_ladder.main()
 
 #get_puiid 
+exec(open('get_puuid.py').read())
 
 #get_matches
+exec(open('get_matches.py').read())
+
+#get_rawgames
+exec(open('get_matchdata.py').read())
