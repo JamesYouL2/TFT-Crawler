@@ -47,9 +47,10 @@ RUN apt-get update \
     && apt-get clean -y \
     && rm -rf /var/lib/apt/lists/*
 
-#Install grequests
+#Install grequests and upgrade pandas
 RUN pip install grequests
 EXPOSE 5000
+RUN pip install pandas==1.0.3
 
 # Switch back to dialog for any ad-hoc use of apt-get
 ENV DEBIAN_FRONTEND=dialog
