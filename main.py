@@ -24,5 +24,5 @@ print ("Get Match JSON Names")
 exec(open('get_matches.py').read())
 
 #get_rawgames
-Print ("Get Match JSON Files")
+print ("Get Match JSON Files")
 exec(open('get_matchdata.py').read())
