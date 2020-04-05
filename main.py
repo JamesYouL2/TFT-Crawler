@@ -16,10 +16,13 @@ print ("Get Ladder")
 get_ladder.main()
 
 #get_puiid 
+print ("Get Puuid")
 exec(open('get_puuid.py').read())
 
 #get_matches
+print ("Get Match JSON Names")
 exec(open('get_matches.py').read())
 
 #get_rawgames
+Print ("Get Match JSON Files")
 exec(open('get_matchdata.py').read())
