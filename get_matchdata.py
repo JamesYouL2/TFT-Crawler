@@ -52,6 +52,9 @@ for region in regions:
             if (response.status_code == 429):
                 time.sleep(120)
 
+            if (response.status_code == (404)):
+                print("404 Error")
+
             if (response.status_code not in (200,429,404)):
                 print(response.status_code)
                 break

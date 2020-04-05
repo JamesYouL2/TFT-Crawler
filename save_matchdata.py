@@ -58,7 +58,8 @@ cols=list(clusterdf.columns)
 cols.remove('match_id')
 cols.remove('participants.placement')
 
-print(cols)
+#print(cols)
+print('HDB Scan')
 
 clusterer=hdb.fit(clusterdf[cols].fillna(0))
 clusterdf['hdb'] = pd.Series(hdb.labels_+1, index=clusterdf.index)
