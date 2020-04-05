@@ -1,1 +1,7 @@
-site_name: My Docs
+site_name: TFT Crawler Docs
+
+nav:
+    - Home: index.md
+    - About: about.md
+    - MKDocs: mkdocs.md
+theme: readthedocs
