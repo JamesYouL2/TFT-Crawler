@@ -53,6 +53,14 @@ EXPOSE 5000
 RUN pip install pandas==1.0.3
 RUN conda install -c conda-forge hdbscan
 
+#Copy working directory
+COPY . /
+
+#move to app
+WORKDIR /app
+
+CMD [ "python", "./main.py" ]
+
 # Switch back to dialog for any ad-hoc use of apt-get
 ENV DEBIAN_FRONTEND=dialog
 
