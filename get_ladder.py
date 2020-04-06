@@ -21,7 +21,7 @@ def main():
 				response.raise_for_status()
 				if (response.status_code == 200):
 					entries = response.json()['entries']
-					players = [file.write(entry['summonerName'] + '\n') for entry in entries]
+					[file.write(entry['summonerName'] + '\n') for entry in entries]
 			except:
 				print("something failed")
 			time.sleep(.1)

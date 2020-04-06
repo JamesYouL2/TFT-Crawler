@@ -59,7 +59,7 @@ COPY . /
 #move to app
 WORKDIR /app
 
-CMD [ "python", "./main.py" ]
+#CMD [ "python", "./main.py" ]
 
 # Switch back to dialog for any ad-hoc use of apt-get
 ENV DEBIAN_FRONTEND=dialog

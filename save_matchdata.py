@@ -34,7 +34,7 @@ for region in regions:
 traits = json_normalize(allrecords, 
 record_path=['participants','traits'],
 meta=['match_id',['participants','placement'],['participants','puuid']])
-
+ 
 units = json_normalize(allrecords,
 record_path=['participants','units'],
 meta=['match_id',['participants','placement'],['participants','puuid']])
