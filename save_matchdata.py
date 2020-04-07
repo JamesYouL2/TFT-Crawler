@@ -41,6 +41,10 @@ units = json_normalize(allrecords,
 record_path=['participants','units'],
 meta=['match_id',['participants','placement'],['participants','puuid']])
 
+items = json_normalize(allrecords,
+record_path=['participants','units', 'items'],
+meta=['match_id',['participants','placement'],['participants','puuid']])
+
 unitspivot=pd.pivot_table(units,index=['match_id','participants.placement'], columns='character_id',values='tier')
 traitspivot=pd.pivot_table(traits,index=['match_id','participants.placement'], columns='name',values='tier_current')
 
