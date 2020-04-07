@@ -1,5 +1,5 @@
 import pandas as pd 
-from pandas.io.json import json_normalize    
+from pandas import json_normalize    
 import json
 import datetime
 import configparser
@@ -16,15 +16,16 @@ regions = config.get('adjustable', 'regions').split(',')
 
 allrecords = []
 for region in regions:
-    mintime = datetime.datetime.now() - datetime.timedelta(days=14)
-    for name in os.listdir(config.get('setup', 'raw_data_dir') + '/{}'.format(region)):
+    mintime = datetime.datetime.now() - datetime.timedelta(days=1)
+    oslist=os.listdir(config.get('setup', 'raw_data_dir') + '/{}'.format(region))
+    oslist.sort(reverse=True)
+    for name in oslist:
         with open(config.get('setup', 'raw_data_dir') + '/{}/{}'.format(region, name), 'r', encoding="utf-8") as file: 
             data = json.load(file)
-            s=data['game_version']
-            date_time_str=s[s.find("(")+1:s.find(")")]
-            date_time_obj = datetime.datetime.strptime(date_time_str, '%b %d %Y/%H:%M:%S')
+            s=data['game_datetime']
+            date_time_obj = datetime.datetime.fromtimestamp(s / 1e3)
             if mintime > date_time_obj:
-                continue
+                break
             if data['queue_id'] != 1100:
                 continue
             data.update({'match_id':name})
@@ -46,13 +47,14 @@ combinepivot = unitspivot.join(traitspivot).reset_index()
 
 df=json_normalize(allrecords)
 df=df.loc[df['game_version']==df['game_version'].max()]
+print(df['game_datetime'].apply(lambda x: datetime.datetime.fromtimestamp(x / 1e3).day).value_counts())
 
 clusterdf=combinepivot.merge(df,on='match_id')[combinepivot.columns]
 
 hdb = hdbscan.HDBSCAN(min_cluster_size=
 int(np.floor(len(clusterdf)/10)), 
 min_samples=1,
-cluster_selection_method='leaf')
+cluster_selection_method='eom')
 
 cols=list(clusterdf.columns)
 cols.remove('match_id')
@@ -69,6 +71,16 @@ unitscol=list(unitspivot.columns)
 traitscol=list(traitspivot.columns)
 
 print(clusterdf['hdb'].value_counts())
-print(clusterdf.groupby('hdb')[unitscol].mean().idxmax(axis=1))
+print(clusterdf.groupby('hdb')[unitscol].count().idxmax(axis=1))
 print(clusterdf.groupby('hdb')[traitscol].mean().idxmax(axis=1))
 print(clusterdf.groupby('hdb')['participants.placement'].mean())
+
+allhdbdf = pd.DataFrame()
+
+for i in clusterdf.groupby('hdb')['participants.placement'].mean().sort_values().index:
+    if (i != 0):
+        rawhdbdf=pd.DataFrame(clusterdf[unitscol][clusterdf['hdb']==i].count().sort_values(ascending=False))
+        hdbdf= (100* rawhdbdf / (clusterdf['hdb']==i).sum()).round(3).head(10).reset_index()
+        hdbdf.loc[-1] = ['Placement',clusterdf[clusterdf['hdb']==i]['participants.placement'].mean()]
+        hdbdf.columns=[str(i)+'_character',str(i)+'_pct']
+        allhdbdf = pd.concat([allhdbdf,hdbdf],axis=1)

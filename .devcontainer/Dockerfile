@@ -54,10 +54,10 @@ RUN pip install pandas==1.0.3
 RUN conda install -c conda-forge hdbscan
 
 #Copy working directory
-COPY . /
+#COPY . /
 
 #move to app
-WORKDIR /app
+#WORKDIR /app
 
 #CMD [ "python", "./main.py" ]
 

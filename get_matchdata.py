@@ -29,6 +29,9 @@ for region in regions:
     common = common.loc[common['matchid_fromfile'].isnull()].sort_values('matchid',ascending=False)
     common = common.loc[common['matchid'].str.split('_',expand=True)[0]==region.upper()]
 
+    #Get Length of JSON
+    print(len(common))
+
     for index, row in common.iterrows():
         value = row['matchid']
         if region in ('na1', 'br1', 'la1', 'la2', 'oc1'):
