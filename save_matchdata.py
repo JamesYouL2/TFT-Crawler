@@ -9,6 +9,7 @@ import requests
 import numpy as np
 import hdbscan
 from dateutil import parser
+import csv
 
 config = configparser.ConfigParser()
 config.read('config.ini')
@@ -84,3 +85,9 @@ for i in clusterdf.groupby('hdb')['participants.placement'].mean().sort_values()
         hdbdf.loc[-1] = ['Placement',clusterdf[clusterdf['hdb']==i]['participants.placement'].mean()]
         hdbdf.columns=[str(i)+'_character',str(i)+'_pct']
         allhdbdf = pd.concat([allhdbdf,hdbdf],axis=1)
+
+with open('docs/tierlist.md','w') as tierlist:
+    writer = csv.writer(tierlist)
+    writer.writerow([df['game_version'].max()])
+    writer.writerow([str(datetime.datetime.fromtimestamp(df['game_datetime'].max()/1e3))])
+    allhdbdf.sort_index().to_markdown(tierlist)
