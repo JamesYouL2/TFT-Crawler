@@ -67,7 +67,7 @@ for region in regions:
         url = config.get('default', 'matches_url').format(superregion, value, config.get('setup', 'api_key'))
         
         try:
-            response = requests.get(url,verify=False)
+            response = requests.get(url)
             #Valid Response
             if (response.status_code == 200):
                 #MatchHistory File gets Current Date

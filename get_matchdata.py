@@ -44,7 +44,7 @@ for region in regions:
         url = config.get('default', 'matchid_url').format(superregion, value, config.get('setup', 'api_key'))
     
         try:
-            response = requests.get(url)
+            response = requests.get(url,verify=False)
             if (response.status_code == 200):
                 with open(config.get('setup', 'raw_data_dir') + '/{}/{}.json'.format(region,value), "w") as file:
                     file.write(json.dumps(response.json()['info']))
