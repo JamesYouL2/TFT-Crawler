@@ -90,4 +90,6 @@ with open('docs/tierlist.md','w') as tierlist:
     writer = csv.writer(tierlist)
     writer.writerow([df['game_version'].max()])
     writer.writerow([str(datetime.datetime.fromtimestamp(df['game_datetime'].max()/1e3))])
+    writer.writerow()
     allhdbdf.sort_index().to_markdown(tierlist)
+    writer.writerow()
