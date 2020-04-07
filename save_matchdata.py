@@ -99,6 +99,7 @@ for i in clusterdf.groupby('hdb')['participants.placement'].mean().sort_values()
         hdbdf.loc[-1] = ['Placement',round(clusterdf[clusterdf['hdb']==i]['participants.placement'].mean(),2)]
         hdbdf.columns=[str(i)+'_character',str(i)+'_pct']
         itemdf.columns = hdbdf.columns
+        itemdf.index=itemdf.index+100
         hdbitemdf = pd.concat([hdbdf,itemdf])
         allhdbdf = pd.concat([allhdbdf,hdbitemdf],axis=1)
 
