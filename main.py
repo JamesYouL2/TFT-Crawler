@@ -26,3 +26,7 @@ exec(open('get_matches.py').read())
 #get_rawgames
 print ("Get Match JSON Files")
 exec(open('get_matchdata.py').read())
+
+#export tier list
+print ("Create Tier List")
+exec(open('save_matchdata.py').read())
