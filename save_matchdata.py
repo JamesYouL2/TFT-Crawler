@@ -81,8 +81,8 @@ allhdbdf = pd.DataFrame()
 for i in clusterdf.groupby('hdb')['participants.placement'].mean().sort_values().index:
     if (i != 0):
         rawhdbdf=pd.DataFrame(clusterdf[unitscol][clusterdf['hdb']==i].count().sort_values(ascending=False))
-        hdbdf= (100* rawhdbdf / (clusterdf['hdb']==i).sum()).round(3).head(10).reset_index()
-        hdbdf.loc[-1] = ['Placement',clusterdf[clusterdf['hdb']==i]['participants.placement'].mean()]
+        hdbdf= (100* rawhdbdf / (clusterdf['hdb']==i).sum()).round().head(10).reset_index()
+        hdbdf.loc[-1] = ['Placement',round(clusterdf[clusterdf['hdb']==i]['participants.placement'].mean(),2)]
         hdbdf.columns=[str(i)+'_character',str(i)+'_pct']
         allhdbdf = pd.concat([allhdbdf,hdbdf],axis=1)
 
