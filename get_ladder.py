@@ -6,6 +6,8 @@ from pathlib import Path
 def main():
 	config = configparser.ConfigParser()
 	config.read('config.ini')
+	key = configparser.ConfigParser()
+	key.read('keys.ini')
 
 	regions = config.get('adjustable', 'regions').split(',')
 	leagues = config.get('adjustable', 'leagues').split(',')
@@ -14,7 +16,7 @@ def main():
 	for region in regions:
 		file = open(config.get('setup', 'ladder_dir') + '/ladder-{}.txt'.format(region), "w", encoding="utf-8")
 		for league in leagues:
-			url = config.get('default', 'ladder_url').format(region, league, config.get('setup', 'api_key'))
+			url = config.get('default', 'ladder_url').format(region, league, key.get('setup', 'api_key'))
 			print(url)
 			try:
 				response = requests.get(url)

@@ -11,6 +11,9 @@ import sys
 config = configparser.ConfigParser()
 config.read('config.ini')
 
+key = configparser.ConfigParser()
+key.read('keys.ini')
+
 regions = config.get('adjustable', 'regions').split(',')
 
 for region in regions:
@@ -23,7 +26,7 @@ for region in regions:
     common['puuid'] = common['puuid'].astype(str)
     for index, row in common.iterrows():
         value = row['summonerName']
-        url = config.get('default', 'summoner_url').format(region, value, config.get('setup', 'api_key'))
+        url = config.get('default', 'summoner_url').format(region, value, key.get('setup', 'api_key'))
         try:
             response = requests.get(url)
             if (response.status_code == 200):

@@ -12,6 +12,10 @@ import sys
 
 config = configparser.ConfigParser()
 config.read('config.ini')
+
+key = configparser.ConfigParser()
+key.read('keys.ini')
+
 regions = config.get('adjustable', 'regions').split(',')
 
 for region in regions:
@@ -41,7 +45,7 @@ for region in regions:
         if region in ('kr', 'jp'):
             superregion = 'asia'
     
-        url = config.get('default', 'matchid_url').format(superregion, value, config.get('setup', 'api_key'))
+        url = config.get('default', 'matchid_url').format(superregion, value, key.get('setup', 'api_key'))
     
         try:
             response = requests.get(url,verify=False)
