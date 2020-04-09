@@ -43,7 +43,7 @@ meta=['match_id',['participants','placement'],['participants','puuid']])
 
 items = pd.json_normalize(allrecords,
 record_path=['participants','units', 'items'],
-meta=['match_id',['participants','placement'],['participants','puuid']])
+meta=['match_id',['participants','placement'],['participants','puuid'],['participants','units','character_id']])
 items.rename(columns={0: "item"},inplace=True)
 items['count']=1
 items=items.loc[items['item']>10]
