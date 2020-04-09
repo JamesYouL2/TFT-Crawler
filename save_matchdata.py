@@ -66,9 +66,6 @@ df=df.loc[df['game_version']==df['game_version'].max()]
 
 clusterdf=combinepivot.merge(df,on='match_id')[combinepivot.columns]
 
-#Merge items with HDB
-itemshdb=items.merge(clusterdf)[list(items.columns)+list(['hdb'])]
-
 #HDB Scan
 hdb = hdbscan.HDBSCAN(min_cluster_size=
 int(np.floor(len(clusterdf)/10)), 
@@ -91,6 +88,9 @@ print(clusterdf['hdb'].value_counts())
 print(clusterdf.groupby('hdb')[unitscol].count().idxmax(axis=1))
 print(clusterdf.groupby('hdb')[traitscol].mean().idxmax(axis=1))
 print(clusterdf.groupby('hdb')['participants.placement'].mean())
+
+#Merge items with HDB
+itemshdb=items.merge(clusterdf)[list(items.columns)+list(['hdb'])]
 
 allhdbdf = pd.DataFrame()
 
