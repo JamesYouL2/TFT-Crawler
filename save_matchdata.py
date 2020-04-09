@@ -52,10 +52,12 @@ items=items.merge(pd.read_json('items.json'),left_on='item',right_on='id')
 #Pivot and combine spreadsheets
 unitspivot=pd.pivot_table(units,index=['match_id','participants.placement'], columns='character_id',values='tier')
 traitspivot=pd.pivot_table(traits,index=['match_id','participants.placement'], columns='name',values='tier_current')
-itemspivot=pd.pivot_table(items,index=['match_id','participants.placement'], columns='name',values='count',aggfunc=np.sum)
+#itemspivot=pd.pivot_table(items,index=['match_id','participants.placement'], columns=['name','participants.units.character_id'],values='count',aggfunc=np.sum)
 
 #combinepivot = unitspivot.join(traitspivot).reset_index()
-combinepivot = itemspivot.join(unitspivot.join(traitspivot)).reset_index()
+combinepivot = unitspivot.join(traitspivot).reset_index()
+
+print(combinepivot)
 
 #Only get most recent game version
 df=pd.json_normalize(allrecords)
@@ -63,6 +65,9 @@ df=df.loc[df['game_version']==df['game_version'].max()]
 #print(df['game_datetime'].apply(lambda x: datetime.datetime.fromtimestamp(x / 1e3).day).value_counts())
 
 clusterdf=combinepivot.merge(df,on='match_id')[combinepivot.columns]
+
+#Merge items with HDB
+itemshdb=items.merge(clusterdf)[list(items.columns)+list(['hdb'])]
 
 #HDB Scan
 hdb = hdbscan.HDBSCAN(min_cluster_size=
@@ -93,11 +98,13 @@ allhdbdf = pd.DataFrame()
 for i in clusterdf.groupby('hdb')['participants.placement'].mean().sort_values().index:
     if (i != 0):
         rawhdbdf=pd.DataFrame(clusterdf[unitscol][clusterdf['hdb']==i].count().sort_values(ascending=False))
-        rawitemsdf=pd.DataFrame(clusterdf[list(itemspivot.columns)][clusterdf['hdb']==i].count().sort_values(ascending=False))
-        itemdf= (100* rawitemsdf / (clusterdf['hdb']==i).sum()).round().head(20).reset_index()
+        rawitemdf=itemshdb[itemshdb['hdb']==i].groupby(['name','participants.units.character_id']).count()['count'].sort_values(ascending=False).head(10).reset_index()
         hdbdf= (100* rawhdbdf / (clusterdf['hdb']==i).sum()).round().head(15).reset_index()
         hdbdf.loc[-1] = ['Placement',round(clusterdf[clusterdf['hdb']==i]['participants.placement'].mean(),2)]
         hdbdf.columns=[str(i)+'_character',str(i)+'_pct']
+        rawitemdf['character']=rawitemdf['participants.units.character_id']+rawitemdf['name']
+        itemdf=rawitemdf[['character','count']]
+        itemdf['count']= (100* itemdf['count']/ (clusterdf['hdb']==i).sum()).round()
         itemdf.columns = hdbdf.columns
         itemdf.index=itemdf.index+100
         hdbitemdf = pd.concat([hdbdf,itemdf])
