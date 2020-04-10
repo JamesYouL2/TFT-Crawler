@@ -100,6 +100,7 @@ for i in clusterdf.groupby('hdb')['participants.placement'].mean().sort_values()
         rawhdbdf=pd.DataFrame(clusterdf[unitscol][clusterdf['hdb']==i].count().sort_values(ascending=False))
         rawitemdf=itemshdb[itemshdb['hdb']==i].groupby(['name','participants.units.character_id']).count()['count'].sort_values(ascending=False).head(10).reset_index()
         hdbdf= (100* rawhdbdf / (clusterdf['hdb']==i).sum()).round().head(15).reset_index()
+        hdbdf.loc[-2] = ['Count',len(clusterdf[clusterdf['hdb']==i])]
         hdbdf.loc[-1] = ['Placement',round(clusterdf[clusterdf['hdb']==i]['participants.placement'].mean(),2)]
         hdbdf.columns=[str(i)+'_character',str(i)+'_pct']
         rawitemdf['character']=rawitemdf['participants.units.character_id']+rawitemdf['name']
