@@ -60,6 +60,7 @@ for region in regions:
 
             if (response.status_code == (404)):
                 print("404 Error")
+                print(url)
 
             if (response.status_code not in (200,429,404)):
                 print(response.status_code)
