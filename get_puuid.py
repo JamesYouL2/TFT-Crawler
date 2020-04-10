@@ -20,6 +20,7 @@ for region in regions:
     file = config.get('setup', 'ladder_dir') + '/ladder-{}.txt'.format(region)
     ladder = pd.read_csv(file, header=None, names=['summonerName'])
     puuidfile = config.get('setup', 'ladder_dir') + '/puuid-{}.txt'.format(region)
+    open(puuidfile, "w", encoding="utf-8")
     puuid = pd.read_csv(puuidfile)
     common = ladder.merge(puuid,on=['summonerName'], how='left')
     common = common[common['puuid'].isnull()]
