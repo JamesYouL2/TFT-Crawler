@@ -19,7 +19,7 @@ key.read('keys.ini')
 regions = config.get('adjustable', 'regions').split(',')
 
 for region in regions:
-    matchhistoryfile = config.get('setup','ladder_dir') + '/matchhistory- {}.txt'.format(region)
+    matchhistoryfile = config.get('setup','ladder_dir') + '/matchhistory-{}.txt'.format(region)
     matchhistory = pd.read_csv(matchhistoryfile,header=None, names=['matchid'])
 
     gamespath = config.get('setup','raw_data_dir') + '/{}/'.format(region)

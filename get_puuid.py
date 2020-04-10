@@ -43,8 +43,9 @@ for region in regions:
             elif (response.status_code == 429):
                 time.sleep(120)
             else:
-                print(response.status_code)
-                break
+                print(url)
+                print(response.json())
+                continue
         except:
             print("something failed")
             print(sys.exc_info()[0])
