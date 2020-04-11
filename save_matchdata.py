@@ -46,7 +46,7 @@ record_path=['participants','units', 'items'],
 meta=['match_id',['participants','placement'],['participants','puuid'],['participants','units','character_id']])
 items.rename(columns={0: "item"},inplace=True)
 items['count']=1
-items=items.loc[items['item']>10]
+items=items.loc[items['item']>15]
 items=items.merge(pd.read_json('items.json'),left_on='item',right_on='id')
 
 #Pivot and combine spreadsheets

@@ -54,10 +54,6 @@ for region in regions:
     common['date'] = common['date'].fillna(value=datetime.now() - timedelta(days=365))
     common = common.loc[pd.to_datetime(common['date']) < (datetime.now() - timedelta(days=2))]
 
-    if len(common) == 0:
-        print(region)
-        continue
-
     for index, row in common.iterrows():
         value = row['puuid']
 
@@ -89,7 +85,7 @@ for region in regions:
             #Break if invalid response
             if (response.status_code not in (200,429)):
                 print(response.status_code)
-                print(value)
+                print(region)
                 print(url)
                 break
 
