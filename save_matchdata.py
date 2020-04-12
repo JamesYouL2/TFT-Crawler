@@ -46,7 +46,7 @@ record_path=['participants','units', 'items'],
 meta=['match_id',['participants','placement'],['participants','puuid'],['participants','units','character_id']])
 items.rename(columns={0: "item"},inplace=True)
 items['count']=1
-items=items.loc[items['item']>15]
+items=items.loc[items['item']>10]
 items=items.merge(pd.read_json('items.json'),left_on='item',right_on='id')
 
 #Pivot and combine spreadsheets
@@ -78,8 +78,8 @@ traitscol=list(traitspivot.columns)
 cols = unitscol + traitscol
 
 #print(cols)
+#Cluster HDB
 print('HDB Scan')
-
 clusterer=hdb.fit(clusterdf[cols].fillna(0))
 clusterdf['hdb'] = pd.Series(hdb.labels_+1, index=clusterdf.index)
 plot = clusterer.condensed_tree_.plot(select_clusters=True)
@@ -98,7 +98,9 @@ allhdbdf = pd.DataFrame()
 for i in clusterdf.groupby('hdb')['participants.placement'].mean().sort_values().index:
     if (i != 0):
         rawhdbdf=pd.DataFrame(clusterdf[unitscol][clusterdf['hdb']==i].count().sort_values(ascending=False))
-        rawitemdf=itemshdb[itemshdb['hdb']==i].groupby(['name','participants.units.character_id']).count()['count'].sort_values(ascending=False).head(10).reset_index()
+        #get 15 most popular items per unit
+        rawitemdf=itemshdb[itemshdb['hdb']==i].groupby(['name','participants.units.character_id']).count()['count'].sort_values(ascending=False).head(15).reset_index()
+        #get 15 most popular units
         hdbdf= (100* rawhdbdf / (clusterdf['hdb']==i).sum()).round().head(15).reset_index()
         hdbdf.loc[-2] = ['Count',len(clusterdf[clusterdf['hdb']==i])]
         hdbdf.loc[-1] = ['Placement',round(clusterdf[clusterdf['hdb']==i]['participants.placement'].mean(),2)]
