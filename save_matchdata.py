@@ -17,10 +17,12 @@ regions = config.get('adjustable', 'regions').split(',')
 #Get all json in array
 allrecords = []
 for region in regions:
+    matchhistoryfile = config.get('setup','ladder_dir') + '/matchhistory-{}.txt'.format(region)
+    matchhistory = pd.read_csv(matchhistoryfile, squeeze=True)
     mintime = datetime.datetime.now() - datetime.timedelta(days=1)
     oslist=os.listdir(config.get('setup', 'raw_data_dir') + '/{}'.format(region))
-    oslist.sort(reverse=True)
-    for name in oslist:
+    intersectionset = sorted(set(list(matchhistory + '.json')).intersection(oslist),reverse=True)
+    for name in intersectionset:
         with open(config.get('setup', 'raw_data_dir') + '/{}/{}'.format(region, name), 'r', encoding="utf-8") as file: 
             data = json.load(file)
             s=data['game_datetime']
