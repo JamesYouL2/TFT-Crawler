@@ -19,7 +19,7 @@ allrecords = []
 for region in regions:
     matchhistoryfile = config.get('setup','ladder_dir') + '/matchhistory-{}.txt'.format(region)
     matchhistory = pd.read_csv(matchhistoryfile, squeeze=True)
-    mintime = datetime.datetime.now() - datetime.timedelta(days=1)
+    mintime = datetime.datetime.now() - datetime.timedelta(days=2)
     oslist=os.listdir(config.get('setup', 'raw_data_dir') + '/{}'.format(region))
     intersectionset = sorted(set(list(matchhistory + '.json')).intersection(oslist),reverse=True)
     for name in intersectionset:

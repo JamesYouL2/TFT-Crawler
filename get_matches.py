@@ -87,7 +87,6 @@ for region in regions:
                 print(response.status_code)
                 print(region)
                 print(url)
-                break
 
         except:
             print("something failed")
