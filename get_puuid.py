@@ -49,7 +49,7 @@ for region in regions:
         except:
             print("something failed")
             print(sys.exc_info()[0])
-            break
+            #break
         time.sleep(.2)
     alldf=common.append(puuid).drop_duplicates('summonerName')
     alldf.to_csv(puuidfile,index=None)

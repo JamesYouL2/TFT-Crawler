@@ -69,6 +69,6 @@ for region in regions:
         except:
             print("something failed")
             print(sys.exc_info())
-            break
+            #break
         
         time.sleep(.2)

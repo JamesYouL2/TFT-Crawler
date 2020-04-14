@@ -90,8 +90,8 @@ for region in regions:
 
         except:
             print("something failed")
-            #print(sys.exc_info()[0])
-            break
+            print(sys.exc_info()[0])
+            #break
         
         time.sleep(.2)
 
