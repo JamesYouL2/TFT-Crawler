@@ -70,7 +70,7 @@ clusterdf=combinepivot.merge(df,on='match_id')[combinepivot.columns]
 
 #HDB Scan
 hdb = hdbscan.HDBSCAN(min_cluster_size=
-int(np.floor(len(clusterdf)/10)), 
+int(np.floor(len(clusterdf)/12)), 
 min_samples=1,
 cluster_selection_method='eom')
 
