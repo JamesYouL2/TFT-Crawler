@@ -63,7 +63,8 @@ print(combinepivot)
 
 #Only get most recent game version
 df=pd.json_normalize(allrecords)
-df=df.loc[df['game_version']==df['game_version'].max()]
+df['game_version'].str
+df=df.loc[df['game_version'].str.rsplit('.',2).str[0]==df['game_version'].str.rsplit('.',2).str[0].max()]
 #print(df['game_datetime'].apply(lambda x: datetime.datetime.fromtimestamp(x / 1e3).day).value_counts())
 
 clusterdf=combinepivot.merge(df,on='match_id')[combinepivot.columns]
