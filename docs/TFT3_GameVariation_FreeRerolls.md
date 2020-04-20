@@ -1,38 +1,38 @@
-Version 10.8.317.8137 (Apr 17 2020/16:09:11) [PUBLIC] <Releases/10.8>
+Version 10.8.317.8137 (Apr 17 2020/16:09:11) [PUBLIC] <Releases/10.8>
 
-2020-04-20 10:22:22.660000
+2020-04-20 21:32:32.008000
 
-|     | 2_character                      |   2_pct | 5_character                        |   5_pct | 3_character                    |   3_pct | 1_character                      |   1_pct | 4_character                      |   4_pct |
-|----:|:---------------------------------|--------:|:-----------------------------------|--------:|:-------------------------------|--------:|:---------------------------------|--------:|:---------------------------------|--------:|
-|  -2 | Count                            |  631    | Count                              |  482    | Count                          |  807    | Count                            |  326    | Count                            |  998    |
-|  -1 | Placement                        |    4.14 | Placement                          |    4.35 | Placement                      |    4.43 | Placement                        |    4.46 | Placement                        |    4.81 |
-|   0 | TFT3_Syndra                      |  100    | TFT3_Blitzcrank                    |  100    | TFT3_Karma                     |   96    | TFT3_Rumble                      |   99    | TFT3_Shen                        |   66    |
-|   1 | TFT3_Ahri                        |  100    | TFT3_ChoGath                       |   99    | TFT3_Jhin                      |   96    | TFT3_Annie                       |   99    | TFT3_Irelia                      |   60    |
-|   2 | TFT3_Zoe                         |   97    | TFT3_Vi                            |   99    | TFT3_Ashe                      |   90    | TFT3_KaiSa                       |   98    | TFT3_Kayle                       |   58    |
-|   3 | TFT3_Neeko                       |   91    | TFT3_Malphite                      |   98    | TFT3_Mordekaiser               |   87    | TFT3_Fizz                        |   98    | TFT3_Thresh                      |   50    |
-|   4 | TFT3_Soraka                      |   90    | TFT3_Jinx                          |   90    | TFT3_Lux                       |   81    | TFT3_Shaco                       |   98    | TFT3_Vi                          |   48    |
-|   5 | TFT3_Lux                         |   77    | TFT3_Ezreal                        |   90    | TFT3_Shaco                     |   81    | TFT3_KhaZix                      |   74    | TFT3_Kassadin                    |   46    |
-|   6 | TFT3_Poppy                       |   75    | TFT3_MissFortune                   |   77    | TFT3_Xerath                    |   61    | TFT3_Lux                         |   59    | TFT3_Lucian                      |   45    |
-|   7 | TFT3_VelKoz                      |   47    | TFT3_Graves                        |   65    | TFT3_Lulu                      |   61    | TFT3_Kayle                       |   38    | TFT3_Fiora                       |   44    |
-|   8 | TFT3_Lulu                        |   29    | TFT3_Lucian                        |   39    | TFT3_JarvanIV                  |   45    | TFT3_Ekko                        |   19    | TFT3_Leona                       |   44    |
-|   9 | TFT3_Xerath                      |   29    | TFT3_AurelionSol                   |   15    | TFT3_WuKong                    |   22    | TFT3_MissFortune                 |   10    | TFT3_MissFortune                 |   42    |
-|  10 | TFT3_Annie                       |   14    | TFT3_Kayle                         |   10    | TFT3_Jayce                     |   21    | TFT3_Karma                       |    8    | TFT3_Ekko                        |   39    |
-|  11 | TFT3_Rumble                      |    8    | TFT3_VelKoz                        |    8    | TFT3_Kassadin                  |   19    | TFT3_Xerath                      |    7    | TFT3_Blitzcrank                  |   36    |
-|  12 | TFT3_Fizz                        |    7    | TFT3_KhaZix                        |    8    | TFT3_Thresh                    |   11    | TFT3_Gangplank                   |    3    | TFT3_Ezreal                      |   33    |
-|  13 | TFT3_Karma                       |    6    | TFT3_TwistedFate                   |    6    | TFT3_Poppy                     |   11    | TFT3_Ahri                        |    2    | TFT3_WuKong                      |   30    |
-|  14 | TFT3_Rakan                       |    3    | TFT3_Lulu                          |    5    | TFT3_Leona                     |    7    | TFT3_Mordekaiser                 |    2    | TFT3_MasterYi                    |   25    |
-| 100 | TFT3_SyndraSeraph's Embrace      |   82    | TFT3_JinxGiant Slayer              |   65    | TFT3_ShacoGuardian Angel       |   57    | TFT3_KaiSaMorellonomicon         |   61    | TFT3_IreliaInfinity Edge         |   41    |
-| 101 | TFT3_SyndraChalice of Favor      |   68    | TFT3_JinxRed Buff                  |   52    | TFT3_ShacoBloodthirster        |   46    | TFT3_RumbleQuicksilver           |   52    | TFT3_LucianRed Buff              |   26    |
-| 102 | TFT3_NeekoGuardian Angel         |   40    | TFT3_JinxGuardian Angel            |   33    | TFT3_JhinRunaan's Hurricane    |   37    | TFT3_KaiSaSeraph's Embrace       |   48    | TFT3_KayleGuinsoo's Rageblade    |   26    |
-| 103 | TFT3_NeekoZz'Rot Portal          |   32    | TFT3_JinxTrap Claw                 |   16    | TFT3_JhinLast Whisper          |   29    | TFT3_KaiSaDemolitionist's Charge |   42    | TFT3_MasterYiQuicksilver         |   18    |
-| 104 | TFT3_SyndraGuardian Angel        |   27    | TFT3_MissFortuneSeraph's Embrace   |   16    | TFT3_JhinGuardian Angel        |   28    | TFT3_RumbleTitan's Resolve       |   39    | TFT3_KayleGuardian Angel         |   18    |
-| 105 | TFT3_NeekoIonic Spark            |   23    | TFT3_JinxRunaan's Hurricane        |   15    | TFT3_JhinInfinity Edge         |   25    | TFT3_RumbleBramble Vest          |   37    | TFT3_IreliaLast Whisper          |   16    |
-| 106 | TFT3_SyndraRabadon's Deathcap    |   22    | TFT3_ChoGathIonic Spark            |   15    | TFT3_JhinTrap Claw             |   21    | TFT3_ShacoInfinity Edge          |   33    | TFT3_MasterYiGuinsoo's Rageblade |   15    |
-| 107 | TFT3_NeekoMorellonomicon         |   19    | TFT3_ViIonic Spark                 |   14    | TFT3_XerathGuinsoo's Rageblade |   19    | TFT3_ShacoGuardian Angel         |   28    | TFT3_IreliaGuardian Angel        |   15    |
-| 108 | TFT3_NeekoQuicksilver            |   18    | TFT3_BlitzcrankZephyr              |   13    | TFT3_ShacoInfinity Edge        |   18    | TFT3_ShacoBloodthirster          |   25    | TFT3_KayleRapid Firecannon       |   14    |
-| 109 | TFT3_SyndraTrap Claw             |   16    | TFT3_JinxLast Whisper              |   13    | TFT3_ShacoHextech Gunblade     |   18    | TFT3_KaiSaLuden's Echo           |   15    | TFT3_IreliaInfiltrator's Talons  |   10    |
-| 110 | TFT3_PoppyZz'Rot Portal          |   14    | TFT3_LucianRed Buff                |   12    | TFT3_AsheDark Star's Heart     |   13    | TFT3_KaiSaSpear of Shojin        |   11    | TFT3_MasterYiBramble Vest        |    9    |
-| 111 | TFT3_VelKozStar Guardian's Charm |   14    | TFT3_MissFortuneQuicksilver        |   12    | TFT3_MordekaiserZz'Rot Portal  |   13    | TFT3_RumbleZz'Rot Portal         |   11    | TFT3_IreliaBloodthirster         |    9    |
-| 112 | TFT3_NeekoBramble Vest           |   12    | TFT3_MissFortuneLuden's Echo       |   11    | TFT3_MordekaiserRedemption     |   12    | TFT3_AnnieQuicksilver            |   10    | TFT3_KayleHand Of Justice        |    8    |
-| 113 | TFT3_NeekoTitan's Resolve        |   12    | TFT3_MissFortuneStatikk Shiv       |   10    | TFT3_MordekaiserMorellonomicon |   11    | TFT3_RumbleWarmog's Armor        |   10    | TFT3_YasuoGuardian Angel         |    8    |
-| 114 | TFT3_AhriChalice of Favor        |   11    | TFT3_MissFortuneRabadon's Deathcap |   10    | TFT3_MordekaiserIonic Spark    |    9    | TFT3_ShacoLast Whisper           |    9    | TFT3_YasuoHand Of Justice        |    7    |
+|     | 1_character                      |   1_pct | 4_character                        |   4_pct | 2_character                    |   2_pct | 3_character                     |   3_pct |
+|----:|:---------------------------------|--------:|:-----------------------------------|--------:|:-------------------------------|--------:|:--------------------------------|--------:|
+|  -2 | Count                            |  569    | Count                              |  395    | Count                          |  725    | Count                           |   659   |
+|  -1 | Placement                        |    4.25 | Placement                          |    4.27 | Placement                      |    4.33 | Placement                       |     4.9 |
+|   0 | TFT3_Syndra                      |  100    | TFT3_Blitzcrank                    |  100    | TFT3_Jhin                      |   97    | TFT3_Irelia                     |    74   |
+|   1 | TFT3_Ahri                        |   99    | TFT3_Vi                            |   99    | TFT3_Karma                     |   96    | TFT3_Kayle                      |    70   |
+|   2 | TFT3_Zoe                         |   97    | TFT3_ChoGath                       |   99    | TFT3_Ashe                      |   91    | TFT3_Vi                         |    64   |
+|   3 | TFT3_Neeko                       |   90    | TFT3_Malphite                      |   98    | TFT3_Mordekaiser               |   86    | TFT3_Thresh                     |    62   |
+|   4 | TFT3_Soraka                      |   89    | TFT3_Ezreal                        |   98    | TFT3_Lux                       |   81    | TFT3_Lucian                     |    61   |
+|   5 | TFT3_Lux                         |   75    | TFT3_Jinx                          |   98    | TFT3_Shaco                     |   81    | TFT3_Leona                      |    60   |
+|   6 | TFT3_Poppy                       |   75    | TFT3_MissFortune                   |   82    | TFT3_Xerath                    |   63    | TFT3_Fiora                      |    59   |
+|   7 | TFT3_VelKoz                      |   47    | TFT3_Graves                        |   71    | TFT3_Lulu                      |   62    | TFT3_Shen                       |    54   |
+|   8 | TFT3_Lulu                        |   29    | TFT3_Lucian                        |   42    | TFT3_JarvanIV                  |   45    | TFT3_Ekko                       |    53   |
+|   9 | TFT3_Xerath                      |   28    | TFT3_AurelionSol                   |   16    | TFT3_WuKong                    |   21    | TFT3_MissFortune                |    53   |
+|  10 | TFT3_Annie                       |   15    | TFT3_Kayle                         |   11    | TFT3_Jayce                     |   20    | TFT3_Kassadin                   |    47   |
+|  11 | TFT3_Rumble                      |    9    | TFT3_Lulu                          |    5    | TFT3_Kassadin                  |   19    | TFT3_Ezreal                     |    41   |
+|  12 | TFT3_Fizz                        |    8    | TFT3_MasterYi                      |    3    | TFT3_Thresh                    |   12    | TFT3_WuKong                     |    37   |
+|  13 | TFT3_Karma                       |    7    | TFT3_Thresh                        |    3    | TFT3_Poppy                     |   10    | TFT3_Blitzcrank                 |    25   |
+|  14 | TFT3_Sona                        |    3    | TFT3_Gangplank                     |    2    | TFT3_Leona                     |    6    | TFT3_Xayah                      |    22   |
+| 100 | TFT3_SyndraSeraph's Embrace      |   81    | TFT3_JinxGiant Slayer              |   69    | TFT3_ShacoGuardian Angel       |   57    | TFT3_IreliaInfinity Edge        |    54   |
+| 101 | TFT3_SyndraChalice of Favor      |   68    | TFT3_JinxRed Buff                  |   58    | TFT3_ShacoBloodthirster        |   47    | TFT3_LucianRed Buff             |    33   |
+| 102 | TFT3_NeekoGuardian Angel         |   39    | TFT3_JinxGuardian Angel            |   34    | TFT3_JhinRunaan's Hurricane    |   38    | TFT3_KayleGuinsoo's Rageblade   |    32   |
+| 103 | TFT3_NeekoZz'Rot Portal          |   30    | TFT3_JinxTrap Claw                 |   19    | TFT3_JhinLast Whisper          |   29    | TFT3_KayleGuardian Angel        |    22   |
+| 104 | TFT3_SyndraGuardian Angel        |   26    | TFT3_MissFortuneSeraph's Embrace   |   18    | TFT3_JhinGuardian Angel        |   28    | TFT3_IreliaLast Whisper         |    22   |
+| 105 | TFT3_SyndraRabadon's Deathcap    |   23    | TFT3_JinxRunaan's Hurricane        |   18    | TFT3_JhinInfinity Edge         |   26    | TFT3_IreliaGuardian Angel       |    21   |
+| 106 | TFT3_NeekoIonic Spark            |   22    | TFT3_ChoGathIonic Spark            |   15    | TFT3_JhinTrap Claw             |   21    | TFT3_KayleRapid Firecannon      |    16   |
+| 107 | TFT3_NeekoMorellonomicon         |   18    | TFT3_ViIonic Spark                 |   14    | TFT3_XerathGuinsoo's Rageblade |   19    | TFT3_IreliaInfiltrator's Talons |    14   |
+| 108 | TFT3_NeekoQuicksilver            |   18    | TFT3_JinxLast Whisper              |   13    | TFT3_ShacoInfinity Edge        |   18    | TFT3_IreliaBloodthirster        |    12   |
+| 109 | TFT3_SyndraTrap Claw             |   17    | TFT3_MissFortuneQuicksilver        |   13    | TFT3_ShacoHextech Gunblade     |   17    | TFT3_KayleHand Of Justice       |    10   |
+| 110 | TFT3_PoppyZz'Rot Portal          |   15    | TFT3_LucianRed Buff                |   13    | TFT3_AsheDark Star's Heart     |   13    | TFT3_LeonaIonic Spark           |     8   |
+| 111 | TFT3_VelKozStar Guardian's Charm |   14    | TFT3_BlitzcrankZephyr              |   12    | TFT3_MordekaiserZz'Rot Portal  |   13    | TFT3_ViIonic Spark              |     8   |
+| 112 | TFT3_NeekoBramble Vest           |   12    | TFT3_MissFortuneLuden's Echo       |   12    | TFT3_MordekaiserRedemption     |   12    | TFT3_IreliaSeraph's Embrace     |     8   |
+| 113 | TFT3_NeekoTitan's Resolve        |   12    | TFT3_MissFortuneStatikk Shiv       |   11    | TFT3_MordekaiserMorellonomicon |   11    | TFT3_EkkoMorellonomicon         |     8   |
+| 114 | TFT3_AhriChalice of Favor        |   11    | TFT3_MissFortuneRabadon's Deathcap |   11    | TFT3_XerathSeraph's Embrace    |    9    | TFT3_IreliaRabadon's Deathcap   |     7   |
