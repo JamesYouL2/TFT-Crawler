@@ -10,6 +10,65 @@ import hdbscan
 from dateutil import parser
 import csv
 
+
+def tfthdb(clusterdf, name):
+    #HDB Scan
+    hdb = hdbscan.HDBSCAN(min_cluster_size=
+    int(np.floor(len(clusterdf)/10)), 
+    min_samples=1,
+    cluster_selection_method='eom')
+
+    unitscol=list(unitspivot.columns)
+    traitscol=list(traitspivot.columns)
+
+    cols = unitscol + traitscol
+
+    #print(cols)
+    #Cluster HDB
+    print('HDB Scan')
+    clusterer=hdb.fit(clusterdf[cols].fillna(0))
+    clusterdf['hdb'] = pd.Series(hdb.labels_+1, index=clusterdf.index)
+    plot = clusterer.condensed_tree_.plot(select_clusters=True)
+
+    print(clusterdf['hdb'].value_counts())
+    print(clusterdf.groupby('hdb')[unitscol].count().idxmax(axis=1))
+    print(clusterdf.groupby('hdb')[traitscol].mean().idxmax(axis=1))
+    print(clusterdf.groupby('hdb')['participants.placement'].mean())
+
+    #Merge items with HDB
+    itemshdb=items.merge(clusterdf)[list(items.columns)+list(['hdb'])]
+
+    allhdbdf = pd.DataFrame()
+
+    #Create spreadsheet for MarkDown
+    for i in clusterdf.groupby('hdb')['participants.placement'].mean().sort_values().index:
+        if (i != 0):
+            rawhdbdf=pd.DataFrame(clusterdf[unitscol][clusterdf['hdb']==i].count().sort_values(ascending=False))
+            #get 15 most popular items per unit
+            rawitemdf=itemshdb[itemshdb['hdb']==i].groupby(['name','participants.units.character_id']).count()['count'].sort_values(ascending=False).head(15).reset_index()
+            #get 15 most popular units
+            hdbdf= (100* rawhdbdf / (clusterdf['hdb']==i).sum()).round().head(15).reset_index()
+            hdbdf.loc[-2] = ['Count',len(clusterdf[clusterdf['hdb']==i])]
+            hdbdf.loc[-1] = ['Placement',round(clusterdf[clusterdf['hdb']==i]['participants.placement'].mean(),2)]
+            hdbdf.columns=[str(i)+'_character',str(i)+'_pct']
+            rawitemdf['character']=rawitemdf['participants.units.character_id']+rawitemdf['name']
+            itemdf=rawitemdf[['character','count']]
+            itemdf['count']= (100* itemdf['count']/ (clusterdf['hdb']==i).sum()).round()
+            itemdf.columns = hdbdf.columns
+            itemdf.index=itemdf.index+100
+            hdbitemdf = pd.concat([hdbdf,itemdf])
+            allhdbdf = pd.concat([allhdbdf,hdbitemdf],axis=1)
+
+    #Export to MarkDown
+    with open('docs/' + name + '.md','w') as tierlist:
+        writer = csv.writer(tierlist)
+        writer.writerow([df['game_version'].max()])
+        tierlist.write('\n')
+        writer.writerow([str(datetime.datetime.fromtimestamp(df['game_datetime'].max()/1e3))])
+        tierlist.write('\n')
+        allhdbdf.sort_index().to_markdown(tierlist)
+        tierlist.write('\n')
+
 config = configparser.ConfigParser()
 config.read('config.ini')
 regions = config.get('adjustable', 'regions').split(',')
@@ -56,7 +115,6 @@ unitspivot=pd.pivot_table(units,index=['match_id','participants.placement'], col
 traitspivot=pd.pivot_table(traits,index=['match_id','participants.placement'], columns='name',values='tier_current')
 #itemspivot=pd.pivot_table(items,index=['match_id','participants.placement'], columns=['name','participants.units.character_id'],values='count',aggfunc=np.sum)
 
-#combinepivot = unitspivot.join(traitspivot).reset_index()
 combinepivot = unitspivot.join(traitspivot).reset_index()
 
 print(combinepivot)
@@ -67,61 +125,9 @@ df['game_version'].str
 df=df.loc[df['game_version'].str.rsplit('.',2).str[0]==df['game_version'].str.rsplit('.',2).str[0].max()]
 #print(df['game_datetime'].apply(lambda x: datetime.datetime.fromtimestamp(x / 1e3).day).value_counts())
 
-clusterdf=combinepivot.merge(df,on='match_id')[combinepivot.columns]
+clusterdf=combinepivot.merge(df,on='match_id')[list(combinepivot.columns)+list(['game_variation'])]
 
-#HDB Scan
-hdb = hdbscan.HDBSCAN(min_cluster_size=
-int(np.floor(len(clusterdf)/12)), 
-min_samples=1,
-cluster_selection_method='eom')
-
-unitscol=list(unitspivot.columns)
-traitscol=list(traitspivot.columns)
-
-cols = unitscol + traitscol
-
-#print(cols)
-#Cluster HDB
-print('HDB Scan')
-clusterer=hdb.fit(clusterdf[cols].fillna(0))
-clusterdf['hdb'] = pd.Series(hdb.labels_+1, index=clusterdf.index)
-plot = clusterer.condensed_tree_.plot(select_clusters=True)
-
-print(clusterdf['hdb'].value_counts())
-print(clusterdf.groupby('hdb')[unitscol].count().idxmax(axis=1))
-print(clusterdf.groupby('hdb')[traitscol].mean().idxmax(axis=1))
-print(clusterdf.groupby('hdb')['participants.placement'].mean())
-
-#Merge items with HDB
-itemshdb=items.merge(clusterdf)[list(items.columns)+list(['hdb'])]
-
-allhdbdf = pd.DataFrame()
-
-#Create spreadsheet for MarkDown
-for i in clusterdf.groupby('hdb')['participants.placement'].mean().sort_values().index:
-    if (i != 0):
-        rawhdbdf=pd.DataFrame(clusterdf[unitscol][clusterdf['hdb']==i].count().sort_values(ascending=False))
-        #get 15 most popular items per unit
-        rawitemdf=itemshdb[itemshdb['hdb']==i].groupby(['name','participants.units.character_id']).count()['count'].sort_values(ascending=False).head(15).reset_index()
-        #get 15 most popular units
-        hdbdf= (100* rawhdbdf / (clusterdf['hdb']==i).sum()).round().head(15).reset_index()
-        hdbdf.loc[-2] = ['Count',len(clusterdf[clusterdf['hdb']==i])]
-        hdbdf.loc[-1] = ['Placement',round(clusterdf[clusterdf['hdb']==i]['participants.placement'].mean(),2)]
-        hdbdf.columns=[str(i)+'_character',str(i)+'_pct']
-        rawitemdf['character']=rawitemdf['participants.units.character_id']+rawitemdf['name']
-        itemdf=rawitemdf[['character','count']]
-        itemdf['count']= (100* itemdf['count']/ (clusterdf['hdb']==i).sum()).round()
-        itemdf.columns = hdbdf.columns
-        itemdf.index=itemdf.index+100
-        hdbitemdf = pd.concat([hdbdf,itemdf])
-        allhdbdf = pd.concat([allhdbdf,hdbitemdf],axis=1)
-
-#Export to MarkDown
-with open('docs/tierlist.md','w') as tierlist:
-    writer = csv.writer(tierlist)
-    writer.writerow([df['game_version'].max()])
-    tierlist.write('\n')
-    writer.writerow([str(datetime.datetime.fromtimestamp(df['game_datetime'].max()/1e3))])
-    tierlist.write('\n')
-    allhdbdf.sort_index().to_markdown(tierlist)
-    tierlist.write('\n')
+for variation in clusterdf['game_variation'].unique():
+    print(variation)
+    variationdf = clusterdf.loc[clusterdf['game_variation']==variation]
+    tfthdb(variationdf, variation)
