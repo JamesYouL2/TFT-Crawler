@@ -2,7 +2,13 @@ site_name: TFT Crawler Docs
 
 nav:
     - Home: index.md
-    - TierList: tierlist.md
+    - TierList:
+        - Standard: TFT3_GameVariation_None.md
+        - Rank5FoN: TFT3_GameVariation_MidGameFoN.md
+        - NeekoVerse: TFT3_GameVariation_FreeNeekos.md
+        - 4CostCarousel: TFT3_GameVariation_FourCostFirstCarousel.md
+        - FreeReroll: TFT3_GameVariation_FreeRerolls.md
+        - MediumLegends: TFT3_GameVariation_BigLittleLegends.md
     - About: about.md
     - MKDocs: mkdocs.md
 theme: readthedocs
