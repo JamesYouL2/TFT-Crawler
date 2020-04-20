@@ -10,7 +10,7 @@ import hdbscan
 from dateutil import parser
 import csv
 
-
+#Clusters a dataframe and outputs data to markdown format
 def tfthdb(clusterdf, name):
     #HDB Scan
     hdb = hdbscan.HDBSCAN(min_cluster_size=
