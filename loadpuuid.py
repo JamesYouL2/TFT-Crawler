@@ -2,7 +2,6 @@ from riotwatcher import TftWatcher, ApiError
 import pandas as pd
 import configparser
 import os
-import csv
 import psycopg2
 import psycopg2.extras
 
@@ -44,22 +43,23 @@ def createdbifnotexists():
     connection.commit()
 
 #get cached data
-def grabdb():
+def grabladderdb():
     cursor=connection.cursor()
     sql = """
     SELECT *
     FROM LadderPuuid
     """
-    puuid=pd.read_sql(sql, con=connection)
-    return puuid
+    df=pd.read_sql(sql, con=connection)
+    return df
 
 #get all names without puuid
 def getnameswithoutpuuid(region):
-    puuid = grabdb()
+    puuid = grabladderdb()
     ladder = getchallengerladder(region)
     summonernames = ladder[ladder.merge(puuid,left_on=['summonerId','region'], right_on=['summonerid','region'], how='left')['puuid'].isnull()]
     return summonernames
 
+#insert records into database
 def addpuuid(region):
     summonernames = getnameswithoutpuuid(region)
     for summid in summonernames['summonerId']:
