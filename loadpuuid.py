@@ -80,21 +80,19 @@ def getnameswithoutpuuid(region, panth):
     summonernames = ladder[ladder.merge(puuid,left_on=['summonerId','region'], right_on=['summonerid','region'], how='left')['puuid'].isnull()]
     return summonernames
 
-#insert records into database
-def getpuuid(region,panth):
-    summonernames = getnameswithoutpuuid(region,panth)
-    allpuuid=loop.run_until_complete(apipuuid(summonernames['summonerId'],region,panth))
-    return allpuuid
-
 #call riot puuid
 async def apipuuid(summonerids,region,panth):
     tasks = [panth.getTFTSummoner(summonerid) for summonerid in summonerids]
     return await asyncio.gather(*tasks)
 
-def insertpuuid(region, panth):    
+async def insertpuuid(region, panth):
+    print(region)
+    summonernames = getnameswithoutpuuid(region,panth)
+    allpuuid=loop.run_until_complete(apipuuid(summonernames['summonerId'],region,panth))
+    puuiddf=pd.json_normalize(allpuuid)
     cursor=connection.cursor()
-    query=('INSERT INTO LadderPuuid (summonerName, summonerId, puuid, region) VALUES (%s, %s, %s, %s)')
-    df=getpuuid(region, panth)
+    query='INSERT INTO LadderPuuid (summonerName, summonerId, puuid, region) VALUES (%s, %s, %s, %s)'
+    psycopg2.extras.execute_batch(cursor,query,(puuiddf["name"], puuiddf["id"], puuiddf["puuid"], region))
     connection.commit()
 
 def main():
@@ -102,8 +100,7 @@ def main():
     regions = config.get('adjustable', 'regions').split(',')
     for region in regions:
         panth = pantheon.Pantheon(region, key.get('setup', 'api_key'), errorHandling=True, requestsLoggingFunction=requestsLog, debug=True)
-        insertpuuid(region, panth)
-        print(region)
+        loop.run_until_complete(insertpuuid(region, panth))
     connection.close()
 
 #if __name__ == "__main__":
