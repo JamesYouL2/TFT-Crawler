@@ -5,6 +5,7 @@ import os
 import psycopg2
 import psycopg2.extras
 from datetime import datetime, timedelta
+from loadpuuid import getchallengerladder, grabpuiiddb
 
 #get config from text files
 config = configparser.ConfigParser()
@@ -48,16 +49,6 @@ def grabmatchhistorydb():
     df=pd.read_sql(sql, con=connection)
     return df
 
-#grab ladder records
-def grabladderdb():
-    cursor=connection.cursor()
-    sql = """
-    SELECT *
-    FROM LadderPuuid
-    """
-    df=pd.read_sql(sql, con=connection)
-    return df
-
 #Switch Region to Superregion because of API
 def getsuperregion(region):    
     if region in ('na1', 'br1', 'la1', 'la2', 'oc1'):
@@ -73,10 +64,11 @@ def getsuperregion(region):
 
 #get matchhistories to run through in sorted order
 def getmatchhistorylist(region):
-    ladder = grabladderdb()
+    ladder = grabpuiiddb()
     allmatches = list()
     superregion = getsuperregion(region)
-    for puuid in ladder['puuid']:
+    challenger=getchallengerladder(region)
+    for puuid in ladder["puuid"]:
         matchlist = tft_watcher.match.by_puuid(superregion,puuid,100)
         allmatches = list(set(matchlist + allmatches))
     

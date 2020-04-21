@@ -43,7 +43,7 @@ def createdbifnotexists():
     connection.commit()
 
 #get cached data
-def grabladderdb():
+def grabpuiiddb():
     cursor=connection.cursor()
     sql = """
     SELECT *
@@ -54,7 +54,7 @@ def grabladderdb():
 
 #get all names without puuid
 def getnameswithoutpuuid(region):
-    puuid = grabladderdb()
+    puuid = grabpuiiddb()
     ladder = getchallengerladder(region)
     summonernames = ladder[ladder.merge(puuid,left_on=['summonerId','region'], right_on=['summonerid','region'], how='left')['puuid'].isnull()]
     return summonernames
