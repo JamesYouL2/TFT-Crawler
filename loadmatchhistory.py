@@ -4,6 +4,7 @@ import configparser
 import os
 import psycopg2
 import psycopg2.extras
+from datetime import datetime, timedelta
 
 #get config from text files
 config = configparser.ConfigParser()
@@ -57,9 +58,8 @@ def grabladderdb():
     df=pd.read_sql(sql, con=connection)
     return df
 
-#get matchhistories to run through
-def getmatchhistorylist(region):
-    #Switch Region to Superregion because of NA API
+#Switch Region to Superregion because of API
+def getsuperregion(region):    
     if region in ('na1', 'br1', 'la1', 'la2', 'oc1'):
         superregion = 'americas'
     
@@ -69,13 +69,27 @@ def getmatchhistorylist(region):
     if region in ('kr', 'jp'):
         superregion = 'asia'
     
+    return superregion
+
+#get matchhistories to run through in sorted order
+def getmatchhistorylist(region):
     ladder = grabladderdb()
     allmatches = list()
-
+    superregion = getsuperregion(region)
     for puuid in ladder['puuid']:
         matchlist = tft_watcher.match.by_puuid(superregion,puuid,100)
         allmatches = list(set(matchlist + allmatches))
     
-    return allmatches
+    return sorted(allmatches, reverse=True)
 
-def 
+def getmatchhistories(region):
+    allmatches=getmatchhistorylist(region)
+    cursor=connection.cursor()
+    superregion = getsuperregion(region)
+    for match in allmatches:
+        df = pd.json_normalize(tft_watcher.match.by_id(superregion,match)['info'])
+        if df["queue_id"] == 1100:
+            cursor.execute('INSERT INTO MatchHistories (date, matchhistoryid, game_version, region, matchhistory) VALUES (%s, %s, %s, %s)' \
+            , (df["game_datetime"], match, df["game_version"], region, df["participants"]))
+        if (datetime.fromtimestamp(df['game_datetime'] / 1e3) < (datetime.now() - timedelta(days=1))):
+            break
