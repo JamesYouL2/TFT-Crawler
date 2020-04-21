@@ -6,6 +6,7 @@ import psycopg2
 import psycopg2.extras
 from datetime import datetime, timedelta
 from loadpuuid import getchallengerladder, grabpuiiddb
+import numpy as np
 
 #get config from text files
 config = configparser.ConfigParser()
@@ -46,8 +47,8 @@ def grabmatchhistorydb():
     SELECT matchhistoryid
     FROM MatchHistories
     """
-    df=pd.read_sql(sql, con=connection)
-    return df
+    dbmatchhistory=list(pd.read_sql(sql, con=connection))
+    return dbmatchhistory
 
 #Switch Region to Superregion because of API
 def getsuperregion(region):    
@@ -73,6 +74,12 @@ def getmatchhistorylist(region):
         allmatches = list(set(matchlist + allmatches))
     
     return sorted(allmatches, reverse=True)
+
+#delete match histories in database
+def cleanmatchhistorylist(region):
+    matchhistory = getmatchhistorylist(region)
+    dbmatchhistory=grabmatchhistorydb()
+    return np.setdiff1d(matchhistory,dbmatchhistory).tolist()
 
 def getmatchhistories(region):
     allmatches=getmatchhistorylist(region)
