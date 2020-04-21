@@ -86,21 +86,24 @@ async def apipuuid(summonerids,region,panth):
     return await asyncio.gather(*tasks)
 
 async def insertpuuid(region, panth):
+    summonernames = await sync_to_async(getnameswithoutpuuid(region,panth))
     print(region)
-    summonernames = getnameswithoutpuuid(region,panth)
     allpuuid=loop.run_until_complete(apipuuid(summonernames['summonerId'],region,panth))
-    puuiddf=pd.json_normalize(allpuuid)
+    puuiddf=pd.json_normalize(allpuuid)[["name", "id", "puuid"]]
+    puuiddf["region"]=region
     cursor=connection.cursor()
     query='INSERT INTO LadderPuuid (summonerName, summonerId, puuid, region) VALUES (%s, %s, %s, %s)'
-    psycopg2.extras.execute_batch(cursor,query,(puuiddf["name"], puuiddf["id"], puuiddf["puuid"], region))
+    psycopg2.extras.execute_batch(cursor,query,(list(map(tuple, puuiddf.to_numpy()))))
     connection.commit()
 
-def main():
+async def main():
     createdbifnotexists()
     regions = config.get('adjustable', 'regions').split(',')
+    tasks = []
     for region in regions:
         panth = pantheon.Pantheon(region, key.get('setup', 'api_key'), errorHandling=True, requestsLoggingFunction=requestsLog, debug=True)
-        loop.run_until_complete(insertpuuid(region, panth))
+        tasks.append(insertpuuid(region, panth))
+    await asyncio.gather(*tuple(tasks))
     connection.close()
 
 #if __name__ == "__main__":
