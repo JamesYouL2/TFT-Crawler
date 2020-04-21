@@ -20,13 +20,13 @@ loop = asyncio.get_event_loop()
 
 #requestslog
 def requestsLog(url, status, headers):
-    print(url)
-    print(status)
-    print(headers)
+    #print(url)
+    #print(status)
+    #print(headers)
 
 #for debugging
 region = "na1"
-panth = pantheon.Pantheon(region, key.get('setup', 'api_key'), errorHandling=True, requestsLoggingFunction=requestsLog, debug=True)
+panth = pantheon.Pantheon(region, key.get('setup', 'api_key'), errorHandling=True)
 
 #connect to postgres database
 connection = psycopg2.connect(
@@ -38,7 +38,7 @@ connection = psycopg2.connect(
     )
 
 #get tft watcher
-tft_watcher=TftWatcher(api_key=key.get('setup', 'api_key'))
+#tft_watcher=TftWatcher(api_key=key.get('setup', 'api_key'))
 
 #get all challenger summoner IDs and Summoner names
 async def getchallengerladder(region, panth):
@@ -76,7 +76,7 @@ def grabpuiiddb():
 #get all names without puuid
 def getnameswithoutpuuid(region, panth):
     puuid = grabpuiiddb()
-    ladder = getchallengerladder(region, panth)
+    ladder = asyncio.run(getchallengerladder(region, panth))
     summonernames = ladder[ladder.merge(puuid,left_on=['summonerId','region'], right_on=['summonerid','region'], how='left')['puuid'].isnull()]
     return summonernames
 
