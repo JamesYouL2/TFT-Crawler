@@ -20,7 +20,7 @@ loop = asyncio.get_event_loop()
 
 #requestslog
 def requestsLog(url, status, headers):
-    #print(url)
+    print(url)
     #print(status)
     #print(headers)
 
@@ -83,19 +83,18 @@ def getnameswithoutpuuid(region, panth):
 #insert records into database
 def getpuuid(region,panth):
     summonernames = getnameswithoutpuuid(region,panth)
-    allpuuid=list()
-    for summid in summonernames['summonerId']:
-        #put call in try except block
-        try:
-            print(summid)
-            puuid=panth.getTFTSummoner(region,summid)
-        allpuuid.append(puuid)
+    allpuuid=loop.run_until_complete(apipuuid(summonernames['summonerId'],region,panth))
     return allpuuid
+
+#call riot puuid
+async def apipuuid(summonerids,region,panth):
+    tasks = [panth.getTFTSummoner(summonerid) for summonerid in summonerids]
+    return await asyncio.gather(*tasks)
 
 def insertpuuid(region, panth):    
     cursor=connection.cursor()
     query=('INSERT INTO LadderPuuid (summonerName, summonerId, puuid, region) VALUES (%s, %s, %s, %s)')
-    getpuuid(region)
+    df=getpuuid(region, panth)
     connection.commit()
 
 def main():
@@ -107,7 +106,7 @@ def main():
         print(region)
     connection.close()
 
-if __name__ == "__main__":
+#if __name__ == "__main__":
     # execute only if run as a script
-    print("loadpuuid")
-    main() 
+    #print("loadpuuid")
+    #main() 

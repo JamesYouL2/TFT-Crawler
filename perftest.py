@@ -1,9 +1,12 @@
-from loadpuuid import getnameswithoutpuuid
+from loadpuuid import getnameswithoutpuuid, getchallengerladder
 import configparser
 import time
 import requests 
 from riotwatcher import TftWatcher
 import logging
+from pantheon import pantheon
+import asyncio
+import psycopg2
 
 config = configparser.ConfigParser()
 config.read('config.ini')
@@ -11,19 +14,27 @@ config.read('config.ini')
 key = configparser.ConfigParser()
 key.read('keys.ini')
 
+connection = psycopg2.connect(
+    host = key.get('database', 'host'),
+    port = 5432,
+    user = key.get('database', 'user'),
+    password = key.get('database', 'password'),
+    database = key.get('database', 'database')
+    )
+
+
 #get tft watcher
-tft_watcher=TftWatcher(api_key=key.get('setup', 'api_key'))
+region="euw1"
+panth=pantheon.Pantheon(region, key.get('setup', 'api_key'), errorHandling=True)
 
-region = "euw1"
-
-summonernames = getnameswithoutpuuid(region)
+summonernames = asyncio.run(getchallengerladder(region, panth))
 
 # You must initialize logging, otherwise you'll not see debug output.
-logging.basicConfig()
-logging.getLogger().setLevel(logging.DEBUG)
-requests_log = logging.getLogger("requests.packages.urllib3")
-requests_log.setLevel(logging.DEBUG)
-requests_log.propagate = True
+#logging.basicConfig()
+#logging.getLogger().setLevel(logging.DEBUG)
+#requests_log = logging.getLogger("requests.packages.urllib3")
+#requests_log.setLevel(logging.DEBUG)
+#requests_log.propagate = True
 
 for name in summonernames['summonerId']:
     start=time.time()
@@ -48,5 +59,14 @@ for name in summonernames['summonerId']:
 for name in summonernames['summonerId']:
     start=time.time()
     puuid=tft_watcher.summoner.by_id(region,name)
+    end=time.time()
+    print(end-start)
+
+for name in summonernames['summonerId']:
+    start=time.time()
+    cursor=connection.cursor()
+    query='INSERT INTO LadderPuuid (summonerid) VALUES (%s)'
+    cursor.execute(query,(name,))
+    connection.commit()
     end=time.time()
     print(end-start)
