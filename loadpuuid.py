@@ -81,23 +81,14 @@ def getnameswithoutpuuid(region, panth):
     return summonernames
 
 #insert records into database
-def getpuuid(region):
-    summonernames = getnameswithoutpuuid(region)
+def getpuuid(region,panth):
+    summonernames = getnameswithoutpuuid(region,panth)
     allpuuid=list()
     for summid in summonernames['summonerId']:
         #put call in try except block
         try:
             print(summid)
-            puuid=tft_watcher.summoner.by_id(region,summid)
-        except ApiError as err:
-            if err.response.status_code == 429:
-                print('We should retry in {} seconds.'.format(err.headers['Retry-After']))
-                print('this retry-after is handled by default by the RiotWatcher library')
-                print('future requests wait until the retry-after time passes')
-            elif err.response.status_code == 404:
-                print('Summoner with that ridiculous name not found.')
-            else:
-                raise
+            puuid=panth.getTFTSummoner(region,summid)
         allpuuid.append(puuid)
     return allpuuid
 
