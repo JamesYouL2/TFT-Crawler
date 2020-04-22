@@ -1,4 +1,3 @@
-from riotwatcher import TftWatcher, ApiError
 import pandas as pd
 import configparser
 import os
@@ -7,6 +6,12 @@ import psycopg2.extras
 from datetime import datetime, timedelta
 from loadpuuid import getchallengerladder, grabpuiiddb
 import numpy as np
+from pantheon import pantheon
+import asyncio
+import nest_asyncio
+import functools
+import concurrent.futures
+import time
 
 #get config from text files
 config = configparser.ConfigParser()
@@ -14,6 +19,9 @@ config.read('config.ini')
 
 key = configparser.ConfigParser()
 key.read('keys.ini')
+
+region = "na1"
+panth = pantheon.Pantheon(region, key.get('setup', 'api_key'), errorHandling=True, debug=True)
 
 #connect to postgres database
 connection = psycopg2.connect(
@@ -23,9 +31,6 @@ connection = psycopg2.connect(
     password = key.get('database', 'password'),
     database = key.get('database', 'database')
     )
-
-#get tft watcher
-tft_watcher=TftWatcher(api_key=key.get('setup', 'api_key'))
 
 #Create db if does not yet exist
 def createdbifnotexists():
@@ -64,11 +69,11 @@ def getsuperregion(region):
     return superregion
 
 #get matchhistories to run through in sorted order
-def getmatchhistorylist(region):
+def getmatchhistorylist():
     ladder = grabpuiiddb()
     allmatches = list()
     superregion = getsuperregion(region)
-    challenger=getchallengerladder(region)
+    challenger = asyncio.run(getchallengerladder(region, panth))
     for puuid in ladder["puuid"]:
         matchlist = tft_watcher.match.by_puuid(superregion,puuid,100)
         allmatches = list(set(matchlist + allmatches))
