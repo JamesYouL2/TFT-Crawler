@@ -7,6 +7,8 @@ import psycopg2.extras
 from pantheon import pantheon
 import asyncio
 import nest_asyncio
+import functools
+
 nest_asyncio.apply()
 
 #get config from text files
@@ -18,15 +20,9 @@ key.read('keys.ini')
 
 loop = asyncio.get_event_loop()
 
-#requestslog
-def requestsLog(url, status, headers):
-    print(url)
-    #print(status)
-    #print(headers)
-
 #for debugging
 region = "na1"
-panth = pantheon.Pantheon(region, key.get('setup', 'api_key'), errorHandling=True)
+panth = pantheon.Pantheon(region, key.get('setup', 'api_key'), errorHandling=True, debug=True)
 
 #connect to postgres database
 connection = psycopg2.connect(
@@ -76,6 +72,7 @@ def grabpuiiddb():
 #get all names without puuid
 def getnameswithoutpuuid(region, panth):
     puuid = grabpuiiddb()
+    asyncio.set_event_loop(asyncio.new_event_loop())
     ladder = asyncio.run(getchallengerladder(region, panth))
     summonernames = ladder[ladder.merge(puuid,left_on=['summonerId','region'], right_on=['summonerid','region'], how='left')['puuid'].isnull()]
     return summonernames
@@ -86,9 +83,9 @@ async def apipuuid(summonerids,region,panth):
     return await asyncio.gather(*tasks)
 
 async def insertpuuid(region, panth):
-    summonernames = await sync_to_async(getnameswithoutpuuid(region,panth))
-    print(region)
+    summonernames = loop.run_in_executor(None,functools.partial(getnameswithoutpuuid,region=region,panth=panth))
     allpuuid=loop.run_until_complete(apipuuid(summonernames['summonerId'],region,panth))
+    print(region)
     puuiddf=pd.json_normalize(allpuuid)[["name", "id", "puuid"]]
     puuiddf["region"]=region
     cursor=connection.cursor()
@@ -101,10 +98,10 @@ async def main():
     regions = config.get('adjustable', 'regions').split(',')
     tasks = []
     for region in regions:
-        panth = pantheon.Pantheon(region, key.get('setup', 'api_key'), errorHandling=True, requestsLoggingFunction=requestsLog, debug=True)
+        panth = pantheon.Pantheon(region, key.get('setup', 'api_key'), errorHandling=True, debug=True)
         tasks.append(insertpuuid(region, panth))
     await asyncio.gather(*tuple(tasks))
-    connection.close()
+    #connection.close()
 
 #if __name__ == "__main__":
     # execute only if run as a script
