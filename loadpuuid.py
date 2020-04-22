@@ -19,6 +19,7 @@ config.read('config.ini')
 key = configparser.ConfigParser()
 key.read('keys.ini')
 
+#create loop
 loop = asyncio.get_event_loop()
 
 #for debugging
@@ -90,14 +91,14 @@ async def insertpuuid(panth):
             pool, functools.partial(getnameswithoutpuuid,panth=panth))
         #print('custom thread pool', type(summonernames))
     summonerids = summonernames['summonerId']
-    #print(summonerids[0])
-    allpuuid = loop.run_until_complete(apipuuid(summonerids,panth))
-    puuiddf=pd.json_normalize(allpuuid)[["name", "id", "puuid"]]
-    puuiddf["region"]=panth._server
-    cursor=connection.cursor()
-    query='INSERT INTO LadderPuuid (summonerName, summonerId, puuid, region) VALUES (%s, %s, %s, %s)'
-    psycopg2.extras.execute_batch(cursor,query,(list(map(tuple, puuiddf.to_numpy()))))
-    connection.commit()
+    if len(summonerids>0):
+        allpuuid = loop.run_until_complete(apipuuid(summonerids,panth))
+        puuiddf=pd.json_normalize(allpuuid)[["name", "id", "puuid"]]
+        puuiddf["region"]=panth._server
+        cursor=connection.cursor()
+        query='INSERT INTO LadderPuuid (summonerName, summonerId, puuid, region) VALUES (%s, %s, %s, %s)'
+        psycopg2.extras.execute_batch(cursor,query,(list(map(tuple, puuiddf.to_numpy()))))
+        connection.commit()
 
 async def main():
     createdbifnotexists()
