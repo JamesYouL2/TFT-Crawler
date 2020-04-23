@@ -73,8 +73,8 @@ def grabmatchhistorydb():
     return dbmatchhistory
 
 async def runtasklist(tasks):
-    data = None
-    while data is None:
+    data = pantheon.exc.RateLimit
+    while data is pantheon.exc.RateLimit:
         try:
             asyncio.set_event_loop(asyncio.new_event_loop())
             task = asyncio.gather(*tasks, return_exceptions=True)
@@ -111,8 +111,7 @@ async def getpuuidtorun(panth):
      
 async def getmatchhistorylistfromapi(panth):
     puuidlist = await getpuuidtorun(panth)
-    print('hrm4'+panth._server)
-    matchlists = asyncio.run(apigetmatchlist(puuidlist["puuid"],panth))
+    matchlists = await apigetmatchlist(puuidlist["puuid"],panth)
     flatmatchlist = [item for sublist in matchlists for item in sublist]
     allmatches = list(set(flatmatchlist))
     return allmatches
@@ -168,15 +167,7 @@ async def main():
     regions = config.get('adjustable', 'regions').split(',')
     tasks = []
     for region in regions:
-        panth = pantheon.Pantheon(region, key.get('setup', 'api_key'), requestsLoggingFunction=requestsLog, errorHandling=True, debug=True)
+        panth = pantheon.Pantheon(region, key.get('setup', 'api_key'), errorHandling=True, debug=False)
         tasks.append(loadmatchhistories(panth))
     await asyncio.gather(*tuple(tasks))
     connection.close()
-
-if __name__ == "__main__":
-    # execute only if run as a script
-    panth2=pantheon.Pantheon("ru", key.get('setup', 'api_key'), requestsLoggingFunction=requestsLog, errorHandling=True, debug=True)
-    tasks = []
-    tasks.append(loadmatchhistories(panth))
-    tasks.append(loadmatchhistories(panth2))
-    await asyncio.gather(*tuple(tasks))
