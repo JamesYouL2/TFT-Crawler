@@ -27,7 +27,7 @@ key.read('keys.ini')
 loop = asyncio.get_event_loop()
 
 def requestsLog(url, status, headers):
-    print(url[:50])
+    print(url[:100])
     #print(status)
     #print(headers)
     
@@ -75,7 +75,8 @@ async def runtasklist(tasks):
     data = pantheon.exc.RateLimit
     while data is pantheon.exc.RateLimit:
         try:
-            task = asyncio.gather(*tasks, return_exceptions=False)
+            loop2 = asyncio.get_event_loop()
+            task = loop2.run_until_complete(asyncio.gather(*tasks, return_exceptions=False))
             data = await task
         except pantheon.exc.RateLimit as e:
             print('RateLimitException hit')
