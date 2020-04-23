@@ -13,6 +13,7 @@ import functools
 import concurrent.futures
 import time
 import math
+import random
 
 nest_asyncio.apply()
 
@@ -27,9 +28,10 @@ key.read('keys.ini')
 loop = asyncio.get_event_loop()
 
 def requestsLog(url, status, headers):
-    print(url[:100])
+    #print(url[:100])
     #print(status)
     #print(headers)
+    pass
     
 #for debugging
 region = "na1"
@@ -75,28 +77,39 @@ def grabmatchhistorydb():
 async def apigetmatchlist(puuids,panth):
     print("startmatchlist" + panth._server)
     data = pantheon.exc.RateLimit
-    while data is pantheon.exc.RateLimit:
+    #set wait time
+    i = 1 * random.uniform(1,1.5)
+    while type(data) == type and i < 60:
         try:
             tasks = [panth.getTFTMatchlist(puuid) for puuid in puuids]
             data = await asyncio.gather(*tasks, return_exceptions=False)
         except pantheon.exc.RateLimit as e:
-            print('RateLimitException hit')
+            print(e)
             #print(tasks[0])
-            await asyncio.sleep(1)
+            await asyncio.sleep(120 * i)
+            i = i * random.uniform(1.5,2)
+        except:
+            print(data)
+            await asyncio.sleep(120)
     print("endmatchlist" + panth._server)
     return data
 
 async def apigetmatch(matchhistoryids,panth):
     print("startmatches" + panth._server)
     data = pantheon.exc.RateLimit
-    while data is pantheon.exc.RateLimit:
+    i = 1 * random.uniform(1,1.5)
+    while type(data) == type and i < 60:
         try:
             tasks = [panth.getTFTMatch(matchhistoryid) for matchhistoryid in matchhistoryids]
             data = await asyncio.gather(*tasks, return_exceptions=False)
         except pantheon.exc.RateLimit as e:
-            print('RateLimitException hit')
+            print(e)
             #print(tasks[0])
-            await asyncio.sleep(1)
+            await asyncio.sleep(120 * i)
+            i = i * random.uniform(1.5,2)
+        except:
+            print(data)
+            await asyncio.sleep(120)
     print("endmatches" + panth._server)
     return data
 
@@ -139,11 +152,12 @@ async def cleanmatchhistorylist(panth):
 async def getmatchhistories(panth):
     allmatches = await cleanmatchhistorylist(panth)
     alljsons = list()
-    alljsons = await apigetmatch(allmatches,panth)
-    #for i in range(math.ceil(len(allmatches)/100)):
-        #matches = allmatches[i*100:(i*100)+100]
-        #matchjsons = await (apigetmatch(matches,panth))
-        #alljsons = alljsons + matchjsons
+    #alljsons = await apigetmatch(allmatches,panth)
+    #split match history into parts to make it faster
+    for i in range(math.ceil(len(allmatches)/100)):
+        matches = allmatches[i*100:(i*100)+100]
+        matchjsons = await (apigetmatch(matches,panth))
+        alljsons = alljsons + matchjsons
     return alljsons
 
 def insertmatchhistories(matchhistoryjson):
@@ -158,7 +172,7 @@ def insertmatchhistories(matchhistoryjson):
 
 async def loadmatchhistories(panth):
     #print("start"+panth._server)
-    jsoninsert=asyncio.run(getmatchhistories(panth))
+    jsoninsert= await getmatchhistories(panth)
     print("startinsert"+panth._server)
     insertmatchhistories(jsoninsert)
     print("end"+panth._server)
