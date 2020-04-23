@@ -141,7 +141,7 @@ async def getmatchhistories(panth):
     alljsons = list()
     for i in range(math.ceil(len(allmatches)/100)):
         matches = allmatches[i*100:(i*100)+100]
-        matchjsons = loop.run_until_complete(apigetmatch(matches,panth))
+        matchjsons = await (apigetmatch(matches,panth))
         alljsons = alljsons + matchjsons
     return alljsons
 
