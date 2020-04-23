@@ -30,6 +30,9 @@ loop = asyncio.get_event_loop()
 region = "na1"
 panth = pantheon.Pantheon(region, key.get('setup', 'api_key'), errorHandling=True, debug=True)
 
+#get puuidb first to see if async doesn't work
+puuiddb = grabpuiiddb()
+
 #connect to postgres database
 connection = psycopg2.connect(
     host = key.get('database', 'host'),
@@ -92,17 +95,17 @@ async def apigetmatch(matchhistoryids,panth):
 
 #get matchhistories to run through in sorted order
 async def getpuuidtorun(panth):
-    asyncio.set_event_loop(asyncio.new_event_loop())
-    puuiddb = grabpuiiddb()
-    challenger = loop.run_until_complete(getchallengerladder(panth))
+    print('start'+panth._server)
+    #asyncio.set_event_loop(asyncio.new_event_loop())
+    challenger = await getchallengerladder(panth)
     ladder = puuiddb.merge(challenger,left_on=["summonerid","region"],right_on=["summonerId","region"])
     print('ladder'+panth._server)
     return ladder
-    
+     
 async def getmatchhistorylistfromapi(panth):
-    puuidlist = loop.run_until_complete(getpuuidtorun(panth))
+    puuidlist = await getpuuidtorun(panth)
     print('hrm4'+panth._server)
-    matchlists = loop.run_until_complete(apigetmatchlist(puuidlist["puuid"],panth))
+    matchlists = asyncio.run(apigetmatchlist(puuidlist["puuid"],panth))
     flatmatchlist = [item for sublist in matchlists for item in sublist]
     allmatches = list(set(flatmatchlist))
     return allmatches
@@ -148,7 +151,7 @@ async def insertmatchhistories(matchhistoryjson):
 
 async def loadmatchhistories(panth):
     #print("start"+panth._server)
-    jsoninsert=loop.run_in_executor(getmatchhistories(panth))
+    jsoninsert=asyncio.run(getmatchhistories(panth))
     print("startinsert"+panth._server)
     asyncio.run(insertmatchhistories(jsoninsert))
     print("end"+panth._server)
@@ -163,3 +166,10 @@ async def main():
     await asyncio.gather(*tuple(tasks))
     connection.close()
 
+if __name__ == "__main__":
+    # execute only if run as a script
+    panth2=pantheon.Pantheon("euw1", key.get('setup', 'api_key'), errorHandling=True, debug=True)
+    tasks = []
+    tasks.append(loadmatchhistories(panth))
+    tasks.append(loadmatchhistories(panth2))
+    await asyncio.gather(*tuple(tasks))
