@@ -28,7 +28,7 @@ key.read('keys.ini')
 loop = asyncio.get_event_loop()
 
 def requestsLog(url, status, headers):
-    #print(url[:100])
+    print(url[:100])
     #print(status)
     #print(headers)
     pass
@@ -73,43 +73,48 @@ def grabmatchhistorydb():
     dbmatchhistory=list(pd.read_sql(sql, con=connection))
     return dbmatchhistory
 
-#call riot puuid
+#call api to get list of matches for each player
 async def apigetmatchlist(puuids,panth):
-    print("startmatchlist" + panth._server)
+    print("startmatchlist" + panth._server + str(len(puuids)))
     data = pantheon.exc.RateLimit
     #set wait time
-    i = 1 * random.uniform(1,1.5)
+    await asyncio.sleep(random.uniform(0,60))
+    i = 1
     while type(data) == type and i < 60:
         try:
+            #actually call matches
             tasks = [panth.getTFTMatchlist(puuid) for puuid in puuids]
             data = await asyncio.gather(*tasks, return_exceptions=False)
         except pantheon.exc.RateLimit as e:
-            print(e)
-            #print(tasks[0])
+            i = i * random.uniform(1,2)
+            print(e, str(i), panth._server)
             await asyncio.sleep(120 * i)
-            i = i * random.uniform(1.5,2)
         except:
             print(data)
-            await asyncio.sleep(120)
+            await asyncio.sleep(random.uniform(0,60))
+    assert i < 60
     print("endmatchlist" + panth._server)
     return data
 
+#call api to get matches
 async def apigetmatch(matchhistoryids,panth):
     print("startmatches" + panth._server)
     data = pantheon.exc.RateLimit
-    i = 1 * random.uniform(1,1.5)
+    #add random
+    await asyncio.sleep(random.uniform(0,60))
+    i = 1
     while type(data) == type and i < 60:
         try:
             tasks = [panth.getTFTMatch(matchhistoryid) for matchhistoryid in matchhistoryids]
             data = await asyncio.gather(*tasks, return_exceptions=False)
         except pantheon.exc.RateLimit as e:
-            print(e)
-            #print(tasks[0])
+            i = i * random.uniform(1,2)
+            print(e, str(i), panth._server)
             await asyncio.sleep(120 * i)
-            i = i * random.uniform(1.5,2)
         except:
             print(data)
-            await asyncio.sleep(120)
+            await asyncio.sleep(random.uniform(0,60))
+    assert i < 60
     print("endmatches" + panth._server)
     return data
 
@@ -119,6 +124,7 @@ async def getpuuidtorun(panth):
     asyncio.set_event_loop(asyncio.new_event_loop())
     challenger = asyncio.run(getchallengerladder(panth))
     ladder = puuiddb.merge(challenger,left_on=["summonerid","region"],right_on=["summonerId","region"])
+    ladder = ladder.loc[ladder['puuid'].notnull()]
     print('ladder'+panth._server)
     return ladder
      
@@ -135,7 +141,7 @@ async def maxmatchhistory(days,panth):
     sql = """
     SELECT max(matchhistoryid)
     FROM MatchHistories
-    where date > %s and region > %s
+    where date > %s and region = %s
     """
     df=pd.read_sql(sql, con=connection, params=[timestamp,panth._server])
     return df['max'][0]
@@ -151,6 +157,7 @@ async def cleanmatchhistorylist(panth):
 
 async def getmatchhistories(panth):
     allmatches = await cleanmatchhistorylist(panth)
+    print("finishcleaning" + panth._server)
     alljsons = list()
     #alljsons = await apigetmatch(allmatches,panth)
     #split match history into parts to make it faster
@@ -192,12 +199,18 @@ async def test():
     regions = config.get('adjustable', 'regions').split(',')
     tasks = []
     for region in regions:
-        panth = pantheon.Pantheon(region, key.get('setup', 'api_key'), requestsLoggingFunction=requestsLog, errorHandling=True, debug=False)
+        panth = pantheon.Pantheon(
+            region, 
+            key.get('setup', 'api_key'), 
+            #requestsLoggingFunction=requestsLog, 
+            errorHandling=True, 
+            debug=False)
         tasks.append(getmatchhistories(panth))
-    await asyncio.gather(*tuple(tasks))
+    return await asyncio.gather(*tuple(tasks))
 
 if __name__ == "__main__":
     start=time.time()
+    time.sleep(120)
     print("loadmatchhistory")
-    asyncio.run(test()) 
+    test = asyncio.run(test()) 
     print((time.time()-start)/60)
