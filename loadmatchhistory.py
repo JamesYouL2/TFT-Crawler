@@ -71,32 +71,32 @@ def grabmatchhistorydb():
     dbmatchhistory=list(pd.read_sql(sql, con=connection))
     return dbmatchhistory
 
-async def runtasklist(tasks):
-    data = pantheon.exc.RateLimit
-    while data is pantheon.exc.RateLimit:
-        try:
-            loop2 = asyncio.get_event_loop()
-            task = loop2.run_until_complete(asyncio.gather(*tasks, return_exceptions=False))
-            data = await task
-        except pantheon.exc.RateLimit as e:
-            print('RateLimitException hit')
-            print(tasks[0])
-            await asyncio.sleep(1)
-    return data
-
 #call riot puuid
 async def apigetmatchlist(puuids,panth):
     print("startmatchlist" + panth._server)
-    tasks = [panth.getTFTMatchlist(puuid) for puuid in puuids]
-    print(len(tasks))
-    data = await runtasklist(tasks)
+    data = pantheon.exc.RateLimit
+    while data is pantheon.exc.RateLimit:
+        try:
+            tasks = [panth.getTFTMatchlist(puuid) for puuid in puuids]
+            data = await asyncio.gather(*tasks, return_exceptions=False)
+        except pantheon.exc.RateLimit as e:
+            print('RateLimitException hit')
+            #print(tasks[0])
+            await asyncio.sleep(1)
     print("endmatchlist" + panth._server)
     return data
 
 async def apigetmatch(matchhistoryids,panth):
     print("startmatches" + panth._server)
-    tasks = [panth.getTFTMatch(matchhistoryid) for matchhistoryid in matchhistoryids]
-    data = await (runtasklist(tasks))
+    data = pantheon.exc.RateLimit
+    while data is pantheon.exc.RateLimit:
+        try:
+            tasks = [panth.getTFTMatch(matchhistoryid) for matchhistoryid in matchhistoryids]
+            data = await asyncio.gather(*tasks, return_exceptions=False)
+        except pantheon.exc.RateLimit as e:
+            print('RateLimitException hit')
+            #print(tasks[0])
+            await asyncio.sleep(1)
     print("endmatches" + panth._server)
     return data
 
