@@ -75,10 +75,9 @@ def grabmatchhistorydb():
 
 #call api to get list of matches for each player
 async def apigetmatchlist(puuids,panth):
-    print("startmatchlist" + panth._server + str(len(puuids)))
     data = pantheon.exc.RateLimit
     #set wait time
-    await asyncio.sleep(random.uniform(0,60))
+    await asyncio.sleep(random.uniform(0,30))
     i = 1
     while type(data) == type and i < 60:
         try:
@@ -86,36 +85,31 @@ async def apigetmatchlist(puuids,panth):
             tasks = [panth.getTFTMatchlist(puuid) for puuid in puuids]
             data = await asyncio.gather(*tasks, return_exceptions=False)
         except pantheon.exc.RateLimit as e:
-            i = i * random.uniform(1,2)
+            i = i + 1
             print(e, str(i), panth._server)
-            await asyncio.sleep(120 * i)
+            await asyncio.sleep(random.uniform(0,240))
         except:
             print(data)
-            await asyncio.sleep(random.uniform(0,60))
     assert i < 60
-    print("endmatchlist" + panth._server)
     return data
 
 #call api to get matches
 async def apigetmatch(matchhistoryids,panth):
-    print("startmatches" + panth._server)
     data = pantheon.exc.RateLimit
     #add random
-    await asyncio.sleep(random.uniform(0,60))
+    await asyncio.sleep(random.uniform(0,30))
     i = 1
     while type(data) == type and i < 60:
         try:
             tasks = [panth.getTFTMatch(matchhistoryid) for matchhistoryid in matchhistoryids]
             data = await asyncio.gather(*tasks, return_exceptions=False)
         except pantheon.exc.RateLimit as e:
-            i = i * random.uniform(1,2)
+            i = i + 1
             print(e, str(i), panth._server)
-            await asyncio.sleep(120 * i)
+            await asyncio.sleep(random.uniform(0,240))
         except:
             print(data)
-            await asyncio.sleep(random.uniform(0,60))
     assert i < 60
-    print("endmatches" + panth._server)
     return data
 
 #get matchhistories to run through in sorted order
@@ -130,9 +124,17 @@ async def getpuuidtorun(panth):
      
 async def getmatchhistorylistfromapi(panth):
     puuidlist = await getpuuidtorun(panth)
-    matchlists = await apigetmatchlist(puuidlist["puuid"],panth)
-    flatmatchlist = [item for sublist in matchlists for item in sublist]
+    alllists = list()
+    for i in range(math.ceil(len(puuidlist)/10)):
+        puuids = puuidlist[i*10: (i*10) + 10]
+        print ("startmatchlist" + str(i) + panth._server)
+        matchlists = await apigetmatchlist(puuids["puuid"],panth)
+        print ("endmatchlist" + str(i) + panth._server)
+        alllists = matchlists + alllists
+    #matchlists = await apigetmatchlist(puuidlist["puuid"],panth)
+    flatmatchlist = [item for sublist in alllists for item in sublist]
     allmatches = list(set(flatmatchlist))
+    print ("donematchlist" + str(i) + panth._server)
     return allmatches
 
 async def maxmatchhistory(days,panth):
@@ -161,9 +163,11 @@ async def getmatchhistories(panth):
     alljsons = list()
     #alljsons = await apigetmatch(allmatches,panth)
     #split match history into parts to make it faster
-    for i in range(math.ceil(len(allmatches)/100)):
-        matches = allmatches[i*100:(i*100)+100]
+    for i in range(math.ceil(len(allmatches)/10)):
+        matches = allmatches[i*10:(i*10)+10]
+        print ("startmatch" + str(i) + panth._server)
         matchjsons = await (apigetmatch(matches,panth))
+        print ("endmatch" + str(i) + panth._server)
         alljsons = alljsons + matchjsons
     return alljsons
 
@@ -204,13 +208,14 @@ async def test():
             key.get('setup', 'api_key'), 
             #requestsLoggingFunction=requestsLog, 
             errorHandling=True, 
-            debug=False)
-        tasks.append(getmatchhistories(panth))
+            #debug=True
+            )
+        tasks.append(cleanmatchhistorylist(panth))
     return await asyncio.gather(*tuple(tasks))
 
 if __name__ == "__main__":
     start=time.time()
-    time.sleep(120)
+    #time.sleep(120)
     print("loadmatchhistory")
     test = asyncio.run(test()) 
     print((time.time()-start)/60)
