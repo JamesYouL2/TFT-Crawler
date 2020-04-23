@@ -12,14 +12,21 @@ import nest_asyncio
 import functools
 import concurrent.futures
 import time
+import math
+
+nest_asyncio.apply()
 
 #get config from text files
 config = configparser.ConfigParser()
 config.read('config.ini')
 
-key = configparser.ConfigParser()
+key = configparser.ConfigParser() 
 key.read('keys.ini')
 
+#create loop
+loop = asyncio.get_event_loop()
+
+#for debugging
 region = "na1"
 panth = pantheon.Pantheon(region, key.get('setup', 'api_key'), errorHandling=True, debug=True)
 
@@ -33,7 +40,7 @@ connection = psycopg2.connect(
     )
 
 #Create db if does not yet exist
-def createdbifnotexists():
+def creatematchhistorydbifnotexists():
     cursor=connection.cursor()
     cursor.execute("""CREATE TABLE IF NOT EXISTS MatchHistories(
     id SERIAL PRIMARY KEY,
@@ -41,7 +48,8 @@ def createdbifnotexists():
     matchhistoryid text,
     region text,
     date bigint,
-    game_version text
+    game_version text,
+    queue_id int
     )""")
     connection.commit()
 
@@ -55,45 +63,103 @@ def grabmatchhistorydb():
     dbmatchhistory=list(pd.read_sql(sql, con=connection))
     return dbmatchhistory
 
-#Switch Region to Superregion because of API
-def getsuperregion(region):    
-    if region in ('na1', 'br1', 'la1', 'la2', 'oc1'):
-        superregion = 'americas'
-    
-    if region in ('eun1', 'euw1', 'ru', 'tr1'):
-        superregion = 'europe'
-    
-    if region in ('kr', 'jp'):
-        superregion = 'asia'
-    
-    return superregion
+async def runtasklist(tasks):
+    data = None
+    while data is None:
+        try:
+            asyncio.set_event_loop(asyncio.new_event_loop())
+            task = asyncio.gather(*tasks)
+            data = await task
+        except pantheon.exc.RateLimit as e:
+            print('RateLimitException hit')
+            time.sleep(120)
+    return data
+
+#call riot puuid
+async def apigetmatchlist(puuids,panth):
+    print("startmatchlist" + panth._server)
+    tasks = [panth.getTFTMatchlist(puuid) for puuid in puuids]
+    data = loop.run_until_complete(runtasklist(tasks))
+    print("endmatchlist" + panth._server)
+    return data
+
+async def apigetmatch(matchhistoryids,panth):
+    print("startmatches" + panth._server)
+    tasks = [panth.getTFTMatch(matchhistoryid) for matchhistoryid in matchhistoryids]
+    data = loop.run_until_complete(runtasklist(tasks))
+    print("endmatches" + panth._server)
+    return data
 
 #get matchhistories to run through in sorted order
-def getmatchhistorylist():
-    ladder = grabpuiiddb()
-    allmatches = list()
-    superregion = getsuperregion(region)
-    challenger = asyncio.run(getchallengerladder(region, panth))
-    for puuid in ladder["puuid"]:
-        matchlist = tft_watcher.match.by_puuid(superregion,puuid,100)
-        allmatches = list(set(matchlist + allmatches))
+async def getpuuidtorun(panth):
+    asyncio.set_event_loop(asyncio.new_event_loop())
+    puuiddb = grabpuiiddb()
+    challenger = loop.run_until_complete(getchallengerladder(panth))
+    ladder = puuiddb.merge(challenger,left_on=["summonerid","region"],right_on=["summonerId","region"])
+    print('ladder'+panth._server)
+    return ladder
     
-    return sorted(allmatches, reverse=True)
+async def getmatchhistorylistfromapi(panth):
+    puuidlist = loop.run_until_complete(getpuuidtorun(panth))
+    print('hrm4'+panth._server)
+    matchlists = loop.run_until_complete(apigetmatchlist(puuidlist["puuid"],panth))
+    flatmatchlist = [item for sublist in matchlists for item in sublist]
+    allmatches = list(set(flatmatchlist))
+    return allmatches
+
+async def maxmatchhistory(days,panth):
+    timestamp=(datetime.now() - timedelta(days=days)).timestamp()*1000
+    cursor=connection.cursor()
+    sql = """
+    SELECT max(matchhistoryid)
+    FROM MatchHistories
+    where date > %s and region > %s
+    """
+    df=pd.read_sql(sql, con=connection, params=[timestamp,panth._server])
+    return df['max'][0]
 
 #delete match histories in database
-def cleanmatchhistorylist(region):
-    matchhistory = getmatchhistorylist(region)
-    dbmatchhistory=grabmatchhistorydb()
-    return np.setdiff1d(matchhistory,dbmatchhistory).tolist()
+async def cleanmatchhistorylist(panth):
+    matchhistory = await getmatchhistorylistfromapi(panth)
+    maxmatchhistoryid = await maxmatchhistory(days=2,panth=panth)
+    if maxmatchhistoryid is not None:
+        matchhistory = [i for i in matchhistory if i >= maxmatchhistoryid]
+    dbmatchhistory = grabmatchhistorydb()
+    return sorted(np.setdiff1d(matchhistory,dbmatchhistory).tolist(),reverse=True)
 
-def getmatchhistories(region):
-    allmatches=getmatchhistorylist(region)
+async def getmatchhistories(panth):
+    allmatches = await cleanmatchhistorylist(panth)
+    alljsons = list()
+    for i in range(math.ceil(len(allmatches)/100)):
+        matches = allmatches[i*100:(i*100)+100]
+        matchjsons = loop.run_until_complete(apigetmatch(matches,panth))
+        alljsons = alljsons + matchjsons
+    return alljsons
+
+async def insertmatchhistories(matchhistoryjson):
+    df=pd.json_normalize(matchhistoryjson)
+    df["region"]=df["metadata.match_id"].str.split("_",expand=True)[0]
+    df["json"]=df["info.participants"].apply(psycopg2.extras.Json)
     cursor=connection.cursor()
-    superregion = getsuperregion(region)
-    for match in allmatches:
-        df = pd.json_normalize(tft_watcher.match.by_id(superregion,match)['info'])
-        if df["queue_id"] == 1100:
-            cursor.execute('INSERT INTO MatchHistories (date, matchhistoryid, game_version, region, matchhistory) VALUES (%s, %s, %s, %s)' \
-            , (df["game_datetime"], match, df["game_version"], region, df["participants"]))
-        if (datetime.fromtimestamp(df['game_datetime'] / 1e3) < (datetime.now() - timedelta(days=1))):
-            break
+    insertdf=df[["json","metadata.match_id","region","info.game_datetime","info.game_variation","info.queue_id"]]
+    query="INSERT INTO MatchHistories (matchhistory, matchhistoryid, region, date, game_version, queue_id) VALUES (%s, %s, %s, %s, %s, %s)"
+    psycopg2.extras.execute_batch(cursor,query,(list(map(tuple, insertdf.to_numpy()))))
+    connection.commit()
+
+async def loadmatchhistories(panth):
+    #print("start"+panth._server)
+    jsoninsert=loop.run_in_executor(getmatchhistories(panth))
+    print("startinsert"+panth._server)
+    asyncio.run(insertmatchhistories(jsoninsert))
+    print("end"+panth._server)
+
+async def main():
+    creatematchhistorydbifnotexists()
+    regions = config.get('adjustable', 'regions').split(',')
+    tasks = []
+    for region in regions:
+        panth = pantheon.Pantheon(region, key.get('setup', 'api_key'), errorHandling=True, debug=True)
+        tasks.append(loadmatchhistories(panth))
+    await asyncio.gather(*tuple(tasks))
+    connection.close()
+
