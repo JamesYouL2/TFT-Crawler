@@ -172,9 +172,17 @@ async def main():
     await asyncio.gather(*tuple(tasks))
     connection.close()
 
-if __name__ == "__main__":
-    # execute only if run as a script
-    panth2=pantheon.Pantheon("ru", key.get('setup', 'api_key'), requestsLoggingFunction=requestsLog, errorHandling=True, debug=True)
+#test
+async def test():
+    regions = config.get('adjustable', 'regions').split(',')
     tasks = []
-    tasks.append(getmatchhistorylistfromapi(panth))
-    tasks.append(getmatchhistorylistfromapi(panth2))
+    for region in regions:
+        panth = pantheon.Pantheon(region, key.get('setup', 'api_key'), requestsLoggingFunction=requestsLog, errorHandling=True, debug=False)
+        tasks.append(getmatchhistories(panth))
+    await asyncio.gather(*tuple(tasks))
+
+if __name__ == "__main__":
+    start=time.time()
+    print("loadmatchhistory")
+    asyncio.run(test()) 
+    print((time.time()-start)/60)
