@@ -75,8 +75,8 @@ async def runtasklist(tasks):
     data = pantheon.exc.RateLimit
     while data is pantheon.exc.RateLimit:
         try:
-            task = asyncio.gather(*tasks, return_exceptions=True)
-            await task
+            task = asyncio.gather(*tasks, return_exceptions=False)
+            data = await task
         except pantheon.exc.RateLimit as e:
             print('RateLimitException hit')
             print(tasks[0])
@@ -171,3 +171,10 @@ async def main():
         tasks.append(loadmatchhistories(panth))
     await asyncio.gather(*tuple(tasks))
     connection.close()
+
+if __name__ == "__main__":
+    # execute only if run as a script
+    panth2=pantheon.Pantheon("ru", key.get('setup', 'api_key'), requestsLoggingFunction=requestsLog, errorHandling=True, debug=True)
+    tasks = []
+    tasks.append(getmatchhistorylistfromapi(panth))
+    tasks.append(getmatchhistorylistfromapi(panth2))
