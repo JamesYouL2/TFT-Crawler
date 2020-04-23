@@ -26,12 +26,18 @@ key.read('keys.ini')
 #create loop
 loop = asyncio.get_event_loop()
 
+def requestsLog(url, status, headers):
+    print(url[:100])
+    #print(status)
+    #print(headers)
+
 #for debugging
 region = "na1"
-panth = pantheon.Pantheon(region, key.get('setup', 'api_key'), errorHandling=True, debug=True)
+panth = pantheon.Pantheon(region, key.get('setup', 'api_key'), requestsLoggingFunction=requestsLog, errorHandling=True, debug=True)
 
 #get puuidb first to see if async doesn't work
 puuiddb = grabpuiiddb()
+
 
 #connect to postgres database
 connection = psycopg2.connect(
@@ -71,32 +77,33 @@ async def runtasklist(tasks):
     while data is None:
         try:
             asyncio.set_event_loop(asyncio.new_event_loop())
-            task = asyncio.gather(*tasks)
+            task = asyncio.gather(*tasks, return_exceptions=True)
             data = await task
         except pantheon.exc.RateLimit as e:
             print('RateLimitException hit')
             time.sleep(120)
+            print(data)
     return data
 
 #call riot puuid
 async def apigetmatchlist(puuids,panth):
     print("startmatchlist" + panth._server)
     tasks = [panth.getTFTMatchlist(puuid) for puuid in puuids]
-    data = loop.run_until_complete(runtasklist(tasks))
+    data = await (runtasklist(tasks))
     print("endmatchlist" + panth._server)
     return data
 
 async def apigetmatch(matchhistoryids,panth):
     print("startmatches" + panth._server)
     tasks = [panth.getTFTMatch(matchhistoryid) for matchhistoryid in matchhistoryids]
-    data = loop.run_until_complete(runtasklist(tasks))
+    data = await (runtasklist(tasks))
     print("endmatches" + panth._server)
     return data
 
 #get matchhistories to run through in sorted order
 async def getpuuidtorun(panth):
     print('start'+panth._server)
-    #asyncio.set_event_loop(asyncio.new_event_loop())
+    asyncio.set_event_loop(asyncio.new_event_loop())
     challenger = await getchallengerladder(panth)
     ladder = puuiddb.merge(challenger,left_on=["summonerid","region"],right_on=["summonerId","region"])
     print('ladder'+panth._server)
@@ -139,7 +146,7 @@ async def getmatchhistories(panth):
         alljsons = alljsons + matchjsons
     return alljsons
 
-async def insertmatchhistories(matchhistoryjson):
+def insertmatchhistories(matchhistoryjson):
     df=pd.json_normalize(matchhistoryjson)
     df["region"]=df["metadata.match_id"].str.split("_",expand=True)[0]
     df["json"]=df["info.participants"].apply(psycopg2.extras.Json)
@@ -153,7 +160,7 @@ async def loadmatchhistories(panth):
     #print("start"+panth._server)
     jsoninsert=asyncio.run(getmatchhistories(panth))
     print("startinsert"+panth._server)
-    asyncio.run(insertmatchhistories(jsoninsert))
+    insertmatchhistories(jsoninsert)
     print("end"+panth._server)
 
 async def main():
@@ -161,14 +168,14 @@ async def main():
     regions = config.get('adjustable', 'regions').split(',')
     tasks = []
     for region in regions:
-        panth = pantheon.Pantheon(region, key.get('setup', 'api_key'), errorHandling=True, debug=True)
+        panth = pantheon.Pantheon(region, key.get('setup', 'api_key'), requestsLoggingFunction=requestsLog, errorHandling=True, debug=True)
         tasks.append(loadmatchhistories(panth))
     await asyncio.gather(*tuple(tasks))
     connection.close()
 
 if __name__ == "__main__":
     # execute only if run as a script
-    panth2=pantheon.Pantheon("euw1", key.get('setup', 'api_key'), errorHandling=True, debug=True)
+    panth2=pantheon.Pantheon("ru", key.get('setup', 'api_key'), requestsLoggingFunction=requestsLog, errorHandling=True, debug=True)
     tasks = []
     tasks.append(loadmatchhistories(panth))
     tasks.append(loadmatchhistories(panth2))
