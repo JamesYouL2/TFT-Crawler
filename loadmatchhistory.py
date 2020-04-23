@@ -121,12 +121,16 @@ async def getpuuidtorun(panth):
     ladder = ladder.loc[ladder['puuid'].notnull()]
     print('ladder'+panth._server)
     return ladder
-     
+
+#wrapper to call api to get matchhistories
 async def getmatchhistorylistfromapi(panth):
     puuidlist = await getpuuidtorun(panth)
     alllists = list()
-    for i in range(math.ceil(len(puuidlist)/10)):
-        puuids = puuidlist[i*10: (i*10) + 10]
+    #start off randomly to not hit rate limit right away
+    await asyncio.sleep(random.uniform(0,240))
+    #split api calls into groups of 20
+    for i in range(math.ceil(len(puuidlist)/20)):
+        puuids = puuidlist[i*20: (i*20) + 20]
         print ("startmatchlist" + str(i) + panth._server)
         matchlists = await apigetmatchlist(puuids["puuid"],panth)
         print ("endmatchlist" + str(i) + panth._server)
