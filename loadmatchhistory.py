@@ -76,8 +76,8 @@ def grabmatchhistorydb():
 #call api to get list of matches for each player
 async def apigetmatchlist(puuids,panth):
     data = pantheon.exc.RateLimit
-    #set wait time
-    await asyncio.sleep(random.uniform(0,30))
+    #jitter the wait
+    await asyncio.sleep(random.uniform(0,1))
     i = 1
     while type(data) == type and i < 60:
         try:
@@ -96,8 +96,8 @@ async def apigetmatchlist(puuids,panth):
 #call api to get matches
 async def apigetmatch(matchhistoryids,panth):
     data = pantheon.exc.RateLimit
-    #add random
-    await asyncio.sleep(random.uniform(0,30))
+    #jitter the wait
+    await asyncio.sleep(random.uniform(0,1))
     i = 1
     while type(data) == type and i < 60:
         try:
@@ -131,14 +131,14 @@ async def getmatchhistorylistfromapi(panth):
     #split api calls into groups of 20
     for i in range(math.ceil(len(puuidlist)/20)):
         puuids = puuidlist[i*20: (i*20) + 20]
-        print ("startmatchlist" + str(i) + panth._server)
+        #print ("startmatchlist" + str(i) + panth._server)
         matchlists = await apigetmatchlist(puuids["puuid"],panth)
-        print ("endmatchlist" + str(i) + panth._server)
+        #print ("endmatchlist" + str(i) + panth._server)
         alllists = matchlists + alllists
     #matchlists = await apigetmatchlist(puuidlist["puuid"],panth)
     flatmatchlist = [item for sublist in alllists for item in sublist]
     allmatches = list(set(flatmatchlist))
-    print ("donematchlist" + str(i) + panth._server)
+    #print ("donematchlist" + str(i) + panth._server)
     return allmatches
 
 async def maxmatchhistory(days,panth):
@@ -167,8 +167,8 @@ async def getmatchhistories(panth):
     alljsons = list()
     #alljsons = await apigetmatch(allmatches,panth)
     #split match history into parts to make it faster
-    for i in range(math.ceil(len(allmatches)/10)):
-        matches = allmatches[i*10:(i*10)+10]
+    for i in range(math.ceil(len(allmatches)/20)):
+        matches = allmatches[i*20:(i*20)+20]
         print ("startmatch" + str(i) + panth._server)
         matchjsons = await (apigetmatch(matches,panth))
         print ("endmatch" + str(i) + panth._server)
@@ -214,7 +214,7 @@ async def test():
             errorHandling=True, 
             #debug=True
             )
-        tasks.append(cleanmatchhistorylist(panth))
+        tasks.append(getmatchhistories(panth))
     return await asyncio.gather(*tuple(tasks))
 
 if __name__ == "__main__":
