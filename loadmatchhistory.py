@@ -75,20 +75,20 @@ async def runtasklist(tasks):
     data = pantheon.exc.RateLimit
     while data is pantheon.exc.RateLimit:
         try:
-            task = asyncio.gather(*tasks, return_exceptions=False)
-            data = await task
+            task = asyncio.gather(*tasks, return_exceptions=True)
+            await task
         except pantheon.exc.RateLimit as e:
             print('RateLimitException hit')
             print(tasks[0])
-            await asyncio.sleep(120)
-            data = await runtasklist(tasks)
+            await asyncio.sleep(1)
     return data
 
 #call riot puuid
 async def apigetmatchlist(puuids,panth):
     print("startmatchlist" + panth._server)
     tasks = [panth.getTFTMatchlist(puuid) for puuid in puuids]
-    data = await (runtasklist(tasks))
+    print(len(tasks))
+    data = await runtasklist(tasks)
     print("endmatchlist" + panth._server)
     return data
 
@@ -138,10 +138,11 @@ async def cleanmatchhistorylist(panth):
 async def getmatchhistories(panth):
     allmatches = await cleanmatchhistorylist(panth)
     alljsons = list()
-    for i in range(math.ceil(len(allmatches)/100)):
-        matches = allmatches[i*100:(i*100)+100]
-        matchjsons = await (apigetmatch(matches,panth))
-        alljsons = alljsons + matchjsons
+    alljsons = await apigetmatch(allmatches,panth)
+    #for i in range(math.ceil(len(allmatches)/100)):
+        #matches = allmatches[i*100:(i*100)+100]
+        #matchjsons = await (apigetmatch(matches,panth))
+        #alljsons = alljsons + matchjsons
     return alljsons
 
 def insertmatchhistories(matchhistoryjson):
