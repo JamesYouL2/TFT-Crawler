@@ -27,17 +27,16 @@ key.read('keys.ini')
 loop = asyncio.get_event_loop()
 
 def requestsLog(url, status, headers):
-    print(url[:100])
+    print(url[:50])
     #print(status)
     #print(headers)
-
+    
 #for debugging
 region = "na1"
 panth = pantheon.Pantheon(region, key.get('setup', 'api_key'), requestsLoggingFunction=requestsLog, errorHandling=True, debug=True)
 
 #get puuidb first to see if async doesn't work
 puuiddb = grabpuiiddb()
-
 
 #connect to postgres database
 connection = psycopg2.connect(
@@ -76,13 +75,13 @@ async def runtasklist(tasks):
     data = pantheon.exc.RateLimit
     while data is pantheon.exc.RateLimit:
         try:
-            asyncio.set_event_loop(asyncio.new_event_loop())
-            task = asyncio.gather(*tasks, return_exceptions=True)
+            task = asyncio.gather(*tasks, return_exceptions=False)
             data = await task
         except pantheon.exc.RateLimit as e:
             print('RateLimitException hit')
-            time.sleep(120)
-            print(data)
+            print(tasks[0])
+            await asyncio.sleep(120)
+            data = await runtasklist(tasks)
     return data
 
 #call riot puuid
@@ -104,7 +103,7 @@ async def apigetmatch(matchhistoryids,panth):
 async def getpuuidtorun(panth):
     print('start'+panth._server)
     asyncio.set_event_loop(asyncio.new_event_loop())
-    challenger = await getchallengerladder(panth)
+    challenger = asyncio.run(getchallengerladder(panth))
     ladder = puuiddb.merge(challenger,left_on=["summonerid","region"],right_on=["summonerId","region"])
     print('ladder'+panth._server)
     return ladder
