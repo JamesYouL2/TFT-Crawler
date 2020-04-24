@@ -97,7 +97,7 @@ async def apigetmatchlist(puuids,panth):
 async def apigetmatch(matchhistoryids,panth):
     data = pantheon.exc.RateLimit
     #jitter the wait
-    await asyncio.sleep(random.uniform(0,1))
+    await asyncio.sleep(random.uniform(0,2))
     i = 1
     while type(data) == type and i < 60:
         try:
@@ -132,14 +132,14 @@ async def getmatchhistorylistfromapi(panth):
     #split api calls into groups of 20
     for i in range(math.ceil(len(puuidlist)/10)):
         puuids = puuidlist[i*10 : (i*10) + 10]
-        #print ("startmatchlist" + str(i) + panth._server)
+        print ("startmatchlist" + str(i) + panth._server)
         matchlists = await apigetmatchlist(puuids["puuid"],panth)
         #print ("endmatchlist" + str(i) + panth._server)
         alllists = matchlists + alllists
     #matchlists = await apigetmatchlist(puuidlist["puuid"],panth)
     flatmatchlist = [item for sublist in alllists for item in sublist]
     allmatches = list(set(flatmatchlist))
-    #print ("donematchlist" + str(i) + panth._server)
+    print ("donematchlist" + str(i) + panth._server)
     return allmatches
 
 async def maxmatchhistory(days,panth):
@@ -154,16 +154,18 @@ async def maxmatchhistory(days,panth):
     return df['max'][0]
 
 #delete match histories in database
-async def cleanmatchhistorylist(panth):
+async def cleanmatchhistorylist(panth, days):
     matchhistory = await getmatchhistorylistfromapi(panth)
-    maxmatchhistoryid = await maxmatchhistory(days=14,panth=panth)
+    maxmatchhistoryid = await maxmatchhistory(days=days,panth=panth)
+    print(maxmatchhistoryid)
     if maxmatchhistoryid is not None:
         matchhistory = [i for i in matchhistory if i >= maxmatchhistoryid]
     dbmatchhistory = grabmatchhistorydb()
     return sorted(np.setdiff1d(matchhistory,dbmatchhistory).tolist(),reverse=True)
 
-async def getmatchhistories(panth):
-    allmatches = await cleanmatchhistorylist(panth)
+async def getmatchhistories(panth, days=1):
+    allmatches = await cleanmatchhistorylist(panth,days)
+    timestamp = (datetime.now() - timedelta(days=days)).timestamp()*1000
     print("finishcleaning" + panth._server)
     alljsons = list()
     #alljsons = await apigetmatch(allmatches,panth)
@@ -172,8 +174,10 @@ async def getmatchhistories(panth):
         matches = allmatches[i*10:(i*10)+10]
         print ("startmatch" + str(i) + panth._server)
         matchjsons = await (apigetmatch(matches,panth))
+        insertmatchhistories(matchjsons)
         print ("endmatch" + str(i) + panth._server)
-        alljsons = alljsons + matchjsons
+        if (matchjsons[0]['info']['game_datetime'] < timestamp):
+            break
     return alljsons
 
 def insertmatchhistories(matchhistoryjson):
@@ -186,20 +190,13 @@ def insertmatchhistories(matchhistoryjson):
     psycopg2.extras.execute_batch(cursor,query,(list(map(tuple, insertdf.to_numpy()))))
     connection.commit()
 
-async def loadmatchhistories(panth):
-    #print("start"+panth._server)
-    jsoninsert= await getmatchhistories(panth)
-    print("startinsert"+panth._server)
-    insertmatchhistories(jsoninsert)
-    print("end"+panth._server)
-
 async def main():
     creatematchhistorydbifnotexists()
     regions = config.get('adjustable', 'regions').split(',')
     tasks = []
     for region in regions:
         panth = pantheon.Pantheon(region, key.get('setup', 'api_key'), errorHandling=True, debug=False)
-        tasks.append(loadmatchhistories(panth))
+        tasks.append(getmatchhistories(panth))
     await asyncio.gather(*tuple(tasks))
     connection.close()
 
