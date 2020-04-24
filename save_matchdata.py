@@ -34,7 +34,7 @@ def loaddb(days):
     cursor=connection.cursor()
     sql = """
     SELECT *
-    FROM MatchHistories where game_datetime < %(date)s
+    FROM MatchHistories where game_datetime > %(date)s
     """
     df=pd.read_sql(sql, con=connection, 
     params={"date":timestamp})
@@ -89,21 +89,20 @@ def tfthdb(clusterdf, name, unitscol, traitscol, items):
     return allhdbdf
     
 
-def main(days = 1):
+def main(days = 2):
     df = loaddb(days=days)
     
     df=df.loc[df['game_version'].str.rsplit('.',2).str[0]==df['game_version'].str.rsplit('.',2).str[0].max()]
 
     allrecords = df.to_json(orient='records')
 
-    #get traits and units and items
     traits = pd.json_normalize(json.loads(allrecords), 
     record_path=['participants','traits'],
     meta=['match_id','game_variation',['participants','placement'],['participants','puuid']])
     
     units = pd.json_normalize(json.loads(allrecords), 
     record_path=['participants','units'],
-    meta=['match_id','game_variation',['participants','placement'],['matchhistory','puuid']])
+    meta=['match_id','game_variation',['participants','placement'],['participants','puuid']])
 
     items = pd.json_normalize(json.loads(allrecords),
     record_path=['participants','units', 'items'],
@@ -139,3 +138,10 @@ def main(days = 1):
             tierlist.write('\n')
             hdbdfvariation.sort_index().to_markdown(tierlist)
             tierlist.write('\n')
+
+if __name__ == "__main__":
+    # execute only if run as a script
+    start=time.time()
+    print("hdbscan")
+    main()
+    print((time.time()-start)/60)

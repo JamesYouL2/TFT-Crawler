@@ -1,5 +1,6 @@
 import loadpuuid
 import loadmatchhistory
+import save_matchdata
 import asyncio
 
 #new Workflow
@@ -8,3 +9,6 @@ asyncio.run(loadpuuid.main())
 
 print ("Get matchhistory")
 asyncio.run(loadmatchhistory.main())
+
+print ("Get matchhistory")
+asyncio.run(save_matchdata.main())
