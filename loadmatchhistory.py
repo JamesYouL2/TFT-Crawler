@@ -146,33 +146,33 @@ async def getmatchhistorylistfromapi(panth):
     print ("donematchlist" + str(i) + panth._server)
     return allmatches
 
-async def minmatchhistorygreaterthandate(days,panth):
+async def maxmatchhistorylessthandate(days,panth):
     timestamp=(datetime.now() - timedelta(days=days)).timestamp()*1000
     cursor=connection.cursor()
     sql = """
-    SELECT min(matchhistoryid)
+    SELECT max(matchhistoryid)
     FROM MatchHistories
-    where date > %(date)s and region = %(region)s
+    where date < %(date)s and region = %(region)s
     """
     df=pd.read_sql(sql, con=connection, 
     params={"date":timestamp,"region":panth._server.upper()})
-    print(sql)
-    return df
+    #print(sql)
+    return df['max'][0]
 
 #delete match histories in database
 async def cleanmatchhistorylist(panth, days):
     matchhistory = await getmatchhistorylistfromapi(panth)
-    maxmatchhistoryid = await minmatchhistorygreaterthandate(days=days,panth=panth)
+    maxmatchhistoryid = await maxmatchhistorylessthandate(days=days,panth=panth)
     print(maxmatchhistoryid)
     if maxmatchhistoryid is not None:
         matchhistory = [i for i in matchhistory if i >= maxmatchhistoryid]
     dbmatchhistory = grabmatchhistorydb()
     return sorted(np.setdiff1d(matchhistory,dbmatchhistory).tolist(),reverse=True)
 
-async def getmatchhistories(panth, days=1):
+async def getmatchhistories(panth, days=2):
     allmatches = await cleanmatchhistorylist(panth,days)
     timestamp = (datetime.now() - timedelta(days=days)).timestamp()*1000
-    print("finishcleaning" + panth._server)
+    #print("finishcleaning" + panth._server)
     alljsons = list()
     #alljsons = await apigetmatch(allmatches,panth)
     #split match history into parts to make it faster
@@ -184,7 +184,7 @@ async def getmatchhistories(panth, days=1):
         #print ("endmatch" + str(i) + panth._server)
         if (matchjsons[0]['info']['game_datetime'] < timestamp):
             break
-    print("donematch" + panth._server)
+    print("donematch" + str(i) + panth._server)
     return alljsons
 
 def insertmatchhistories(matchhistoryjson):
