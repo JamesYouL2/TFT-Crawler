@@ -18,4 +18,4 @@ COPY . /
 WORKDIR /app
 
 #Run scripts
-CMD ./main.sh
+CMD [ "python", "./main.py" ]

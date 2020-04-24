@@ -1,4 +1,2 @@
-printf "loadpuuid"
-python loadpuuid.py
-printf "loadmatchhistory"
-python loadmatchhistory.py
+printf "main"
+python main.py
