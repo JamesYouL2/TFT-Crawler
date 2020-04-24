@@ -71,7 +71,7 @@ def grabmatchhistorydb():
     SELECT matchhistoryid
     FROM MatchHistories
     """
-    dbmatchhistory=list(pd.read_sql(sql, con=connection))
+    dbmatchhistory=list(pd.read_sql(sql, con=connection)['matchhistoryid'])
     return dbmatchhistory
 
 #call api to get list of matches for each player
@@ -230,5 +230,5 @@ if __name__ == "__main__":
     start=time.time()
     #time.sleep(120)
     print("loadmatchhistory")
-    test = asyncio.run(main()) 
+    #test = asyncio.run(main()) 
     print((time.time()-start)/60)
