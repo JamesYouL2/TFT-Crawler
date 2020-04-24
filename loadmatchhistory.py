@@ -35,7 +35,7 @@ def requestsLog(url, status, headers):
     pass
     
 #for debugging
-region = "jp1"
+region = "euw1"
 panth = pantheon.Pantheon(region, key.get('setup', 'api_key'), requestsLoggingFunction=requestsLog, errorHandling=True, debug=True)
 
 #get puuidb first to see if async doesn't work
@@ -91,16 +91,17 @@ async def apigetmatchlist(puuids,panth):
             await asyncio.sleep(random.uniform(0,240))
         except:
             e = sys.exc_info()[0]
-            print(data, panth._server, e)
-            await asyncio.sleep(random.uniform(0,60))
-    assert i < 60
+            print(panth._server, e, puuids)
+            i = 1000
+            data = None
+    #assert i < 60
     return data
 
 #call api to get matches
 async def apigetmatch(matchhistoryids,panth):
     data = pantheon.exc.RateLimit
     #jitter the wait
-    await asyncio.sleep(random.uniform(0,2))
+    await asyncio.sleep(random.uniform(0,1))
     i = 1
     while type(data) == type and i < 60:
         try:
@@ -112,8 +113,9 @@ async def apigetmatch(matchhistoryids,panth):
             await asyncio.sleep(random.uniform(0,240))
         except:
             e = sys.exc_info()[0]
-            print(data, panth._server, e)
-            await asyncio.sleep(random.uniform(0,60))
+            print(data, panth._server, e, matchhistoryids)
+            i = 1000
+            data = None
     assert i < 60
     return data
 
@@ -134,8 +136,8 @@ async def getmatchhistorylistfromapi(panth):
     #start off randomly to not hit rate limit right away
     await asyncio.sleep(random.uniform(0,240))
     #split api calls into groups of 20
-    for i in range(math.ceil(len(puuidlist)/10)):
-        puuids = puuidlist[i*10 : (i*10) + 10]
+    for i in range(len(puuidlist)):
+        puuids = puuidlist[i : i + 1]
         #print ("startmatchlist" + str(i) + panth._server)
         matchlists = await apigetmatchlist(puuids["puuid"],panth)
         #print ("endmatchlist" + str(i) + panth._server)
@@ -174,13 +176,15 @@ async def getmatchhistories(panth, days=2):
     timestamp = (datetime.now() - timedelta(days=days)).timestamp()*1000
     #print("finishcleaning" + panth._server)
     alljsons = list()
+    i = 0
     #alljsons = await apigetmatch(allmatches,panth)
     #split match history into parts to make it faster
-    for i in range(math.ceil(len(allmatches)/10)):
-        matches = allmatches[i*10:(i*10)+10]
+    for i in range(len(allmatches)):
+        matches = allmatches[i : i+1]
         #print ("startmatch" + str(i) + panth._server)
         matchjsons = await (apigetmatch(matches,panth))
-        insertmatchhistories(matchjsons)
+        if matchjsons is not None:
+            insertmatchhistories(matchjsons)
         #print ("endmatch" + str(i) + panth._server)
         if (matchjsons[0]['info']['game_datetime'] < timestamp):
             break
@@ -232,5 +236,6 @@ if __name__ == "__main__":
     start=time.time()
     #time.sleep(120)
     print("loadmatchhistory")
-    asyncio.run(main()) 
+    #asyncio.run(main())
+    asyncio.run(getmatchhistories(panth))
     print((time.time()-start)/60)
