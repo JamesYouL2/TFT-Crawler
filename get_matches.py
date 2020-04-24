@@ -64,7 +64,7 @@ for region in regions:
         if region in ('eun1', 'euw1', 'ru', 'tr1'):
             superregion = 'europe'
         
-        if region in ('kr', 'jp'):
+        if region in ('kr', 'jp1'):
             superregion = 'asia'
         
         url = config.get('default', 'matches_url').format(superregion, value, key.get('setup', 'api_key'))

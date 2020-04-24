@@ -34,7 +34,7 @@ def requestsLog(url, status, headers):
     pass
     
 #for debugging
-region = "na1"
+region = "jp1"
 panth = pantheon.Pantheon(region, key.get('setup', 'api_key'), requestsLoggingFunction=requestsLog, errorHandling=True, debug=True)
 
 #get puuidb first to see if async doesn't work
@@ -109,6 +109,7 @@ async def apigetmatch(matchhistoryids,panth):
             await asyncio.sleep(random.uniform(0,240))
         except:
             print(data)
+            await asyncio.sleep(random.uniform(0,240))
     assert i < 60
     return data
 
@@ -119,7 +120,7 @@ async def getpuuidtorun(panth):
     challenger = asyncio.run(getchallengerladder(panth))
     ladder = puuiddb.merge(challenger,left_on=["summonerid","region"],right_on=["summonerId","region"])
     ladder = ladder.loc[ladder['puuid'].notnull()]
-    print('ladder'+panth._server)
+    print(str(len(ladder))+'ladder'+panth._server)
     return ladder
 
 #wrapper to call api to get matchhistories
@@ -129,8 +130,8 @@ async def getmatchhistorylistfromapi(panth):
     #start off randomly to not hit rate limit right away
     await asyncio.sleep(random.uniform(0,240))
     #split api calls into groups of 20
-    for i in range(math.ceil(len(puuidlist)/20)):
-        puuids = puuidlist[i*20: (i*20) + 20]
+    for i in range(math.ceil(len(puuidlist)/10)):
+        puuids = puuidlist[i*10 : (i*10) + 10]
         #print ("startmatchlist" + str(i) + panth._server)
         matchlists = await apigetmatchlist(puuids["puuid"],panth)
         #print ("endmatchlist" + str(i) + panth._server)
@@ -155,7 +156,7 @@ async def maxmatchhistory(days,panth):
 #delete match histories in database
 async def cleanmatchhistorylist(panth):
     matchhistory = await getmatchhistorylistfromapi(panth)
-    maxmatchhistoryid = await maxmatchhistory(days=2,panth=panth)
+    maxmatchhistoryid = await maxmatchhistory(days=14,panth=panth)
     if maxmatchhistoryid is not None:
         matchhistory = [i for i in matchhistory if i >= maxmatchhistoryid]
     dbmatchhistory = grabmatchhistorydb()
@@ -167,8 +168,8 @@ async def getmatchhistories(panth):
     alljsons = list()
     #alljsons = await apigetmatch(allmatches,panth)
     #split match history into parts to make it faster
-    for i in range(math.ceil(len(allmatches)/20)):
-        matches = allmatches[i*20:(i*20)+20]
+    for i in range(math.ceil(len(allmatches)/10)):
+        matches = allmatches[i*10:(i*10)+10]
         print ("startmatch" + str(i) + panth._server)
         matchjsons = await (apigetmatch(matches,panth))
         print ("endmatch" + str(i) + panth._server)
@@ -221,5 +222,5 @@ if __name__ == "__main__":
     start=time.time()
     #time.sleep(120)
     print("loadmatchhistory")
-    test = asyncio.run(test()) 
+    #test = asyncio.run(test()) 
     print((time.time()-start)/60)
