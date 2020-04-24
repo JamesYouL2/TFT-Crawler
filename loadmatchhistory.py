@@ -146,21 +146,23 @@ async def getmatchhistorylistfromapi(panth):
     print ("donematchlist" + str(i) + panth._server)
     return allmatches
 
-async def maxmatchhistory(days,panth):
+async def minmatchhistorygreaterthandate(days,panth):
     timestamp=(datetime.now() - timedelta(days=days)).timestamp()*1000
     cursor=connection.cursor()
     sql = """
-    SELECT max(matchhistoryid)
+    SELECT min(matchhistoryid)
     FROM MatchHistories
-    where date > %s and region = %s
+    where date > %(date)s and region = %(region)s
     """
-    df=pd.read_sql(sql, con=connection, params=[timestamp,panth._server])
-    return df['max'][0]
+    df=pd.read_sql(sql, con=connection, 
+    params={"date":timestamp,"region":panth._server.upper()})
+    print(sql)
+    return df
 
 #delete match histories in database
 async def cleanmatchhistorylist(panth, days):
     matchhistory = await getmatchhistorylistfromapi(panth)
-    maxmatchhistoryid = await maxmatchhistory(days=days,panth=panth)
+    maxmatchhistoryid = await minmatchhistorygreaterthandate(days=days,panth=panth)
     print(maxmatchhistoryid)
     if maxmatchhistoryid is not None:
         matchhistory = [i for i in matchhistory if i >= maxmatchhistoryid]
@@ -230,5 +232,5 @@ if __name__ == "__main__":
     start=time.time()
     #time.sleep(120)
     print("loadmatchhistory")
-    #test = asyncio.run(main()) 
+    asyncio.run(main()) 
     print((time.time()-start)/60)
