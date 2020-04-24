@@ -34,14 +34,14 @@ def loaddb(days):
     cursor=connection.cursor()
     sql = """
     SELECT *
-    FROM MatchHistories where date < %(date)s
+    FROM MatchHistories where game_datetime < %(date)s
     """
     df=pd.read_sql(sql, con=connection, 
     params={"date":timestamp})
     return df
 
 #Clusters a dataframe and outputs data to markdown format
-def tfthdb(clusterdf, name, unitscol, traitscol):
+def tfthdb(clusterdf, name, unitscol, traitscol, items):
     #HDB Scan
     hdb = hdbscan.HDBSCAN(min_cluster_size=
     int(np.floor(len(clusterdf)/10)), 
@@ -86,21 +86,12 @@ def tfthdb(clusterdf, name, unitscol, traitscol):
             hdbitemdf = pd.concat([hdbdf,itemdf])
             allhdbdf = pd.concat([allhdbdf,hdbitemdf],axis=1)
 
-    #Export to MarkDown
-    with open('docs/' + name + '.md','w') as tierlist:
-        writer = csv.writer(tierlist)
-        #writer.writerow([df['game_version'].max()])
-        tierlist.write('\n')
-        writer.writerow([str(datetime.datetime.fromtimestamp(df['game_datetime'].max()/1e3))])
-        tierlist.write('\n')
-        allhdbdf.sort_index().to_markdown(tierlist)
-        tierlist.write('\n')
+    return allhdbdf
+    
 
 def main(days = 1):
     df = loaddb(days=days)
-    #Only get most recent game version
-    #df=pd.json_normalize(allrecords)
-    #df['game_version'].str
+    
     df=df.loc[df['game_version'].str.rsplit('.',2).str[0]==df['game_version'].str.rsplit('.',2).str[0].max()]
 
     allrecords = df.to_json(orient='records')
@@ -137,4 +128,14 @@ def main(days = 1):
     for variation in combinepivot['game_variation'].unique():
         print(variation)
         variationdf = combinepivot.loc[combinepivot['game_variation']==variation]
-        tfthdb(variationdf, variation, unitscol, traitscol, itemscol)
+        hdbdfvariation=tfthdb(variationdf, variation, unitscol, traitscol, items)
+
+        #Export to MarkDown
+        with open('docs/' + variation + '.md','w') as tierlist:
+            writer = csv.writer(tierlist)
+            #writer.writerow([df['game_version'].max()])
+            tierlist.write('\n')
+            writer.writerow([str(datetime.fromtimestamp(df['game_datetime'].max()/1e3))])
+            tierlist.write('\n')
+            hdbdfvariation.sort_index().to_markdown(tierlist)
+            tierlist.write('\n')
