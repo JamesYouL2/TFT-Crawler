@@ -92,6 +92,7 @@ async def apigetmatchlist(puuids,panth):
         except:
             e = sys.exc_info()[0]
             print(data, panth._server, e)
+            await asyncio.sleep(random.uniform(0,60))
     assert i < 60
     return data
 
@@ -110,8 +111,9 @@ async def apigetmatch(matchhistoryids,panth):
             print(e, str(i), panth._server)
             await asyncio.sleep(random.uniform(0,240))
         except:
-            print(data)
-            await asyncio.sleep(random.uniform(0,240))
+            e = sys.exc_info()[0]
+            print(data, panth._server, e)
+            await asyncio.sleep(random.uniform(0,60))
     assert i < 60
     return data
 
