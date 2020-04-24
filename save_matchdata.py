@@ -89,8 +89,8 @@ def tfthdb(clusterdf, name, unitscol, traitscol, items):
     return allhdbdf
     
 
-def main(days = 2):
-    df = loaddb(days=days)
+def main():
+    df = loaddb(days = 2)
     
     df=df.loc[df['game_version'].str.rsplit('.',2).str[0]==df['game_version'].str.rsplit('.',2).str[0].max()]
 
