@@ -72,10 +72,10 @@ def grabpuiiddb():
     return df
 
 #get all names without puuid
-def getnameswithoutpuuid(panth):
+async def getnameswithoutpuuid(panth):
     puuid = grabpuiiddb()
     asyncio.set_event_loop(asyncio.new_event_loop())
-    ladder = asyncio.run(getchallengerladder(panth))
+    ladder = await getchallengerladder(panth)
     summonernames = ladder[ladder.merge(puuid,left_on=['summonerId','region'], right_on=['summonerid','region'], how='left')['puuid'].isnull()]
     return summonernames
 
@@ -86,10 +86,7 @@ async def apipuuid(summonerids,panth):
 
 #wrapper to call api for summonerids to get puuids for and then insert
 async def insertpuuid(panth):
-    with concurrent.futures.ThreadPoolExecutor() as pool:
-        summonernames = await loop.run_in_executor(
-            pool, functools.partial(getnameswithoutpuuid,panth=panth))
-        #print('custom thread pool', type(summonernames))
+    summonernames =  await getnameswithoutpuuid(panth)
     summonerids = summonernames['summonerId']
     if len(summonerids)>0:
         allpuuid = loop.run_until_complete(apipuuid(summonerids,panth))
