@@ -56,10 +56,11 @@ def creatematchhistorydbifnotexists():
     cursor.execute("""CREATE TABLE IF NOT EXISTS MatchHistories(
     id SERIAL PRIMARY KEY,
     matchhistory json,
-    matchhistoryid text,
+    match_id text,
     region text,
-    date bigint,
+    game_datetime bigint,
     game_version text,
+    game_variation text,
     queue_id int
     )""")
     connection.commit()
@@ -197,8 +198,8 @@ def insertmatchhistories(matchhistoryjson):
     df["region"]=df["metadata.match_id"].str.split("_",expand=True)[0]
     df["json"]=df["info.participants"].apply(psycopg2.extras.Json)
     cursor=connection.cursor()
-    insertdf=df[["json","metadata.match_id","region","info.game_datetime","info.game_variation","info.queue_id"]]
-    query="INSERT INTO MatchHistories (matchhistory, matchhistoryid, region, date, game_version, queue_id) VALUES (%s, %s, %s, %s, %s, %s)"
+    insertdf=df[["json","metadata.match_id","region","info.game_datetime","info.game_version","info.queue_id", "info.game_variation"]]
+    query="INSERT INTO MatchHistories (matchhistory, match_id, region, game_datetime, game_version, queue_id, game_variation) VALUES (%s, %s, %s, %s, %s, %s)"
     psycopg2.extras.execute_batch(cursor,query,(list(map(tuple, insertdf.to_numpy()))))
     connection.commit()
 
