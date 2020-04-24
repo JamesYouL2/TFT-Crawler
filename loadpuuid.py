@@ -91,7 +91,7 @@ async def insertpuuid(panth):
             pool, functools.partial(getnameswithoutpuuid,panth=panth))
         #print('custom thread pool', type(summonernames))
     summonerids = summonernames['summonerId']
-    if len(summonerids>0):
+    if len(summonerids)>0:
         allpuuid = loop.run_until_complete(apipuuid(summonerids,panth))
         puuiddf=pd.json_normalize(allpuuid)[["name", "id", "puuid"]]
         puuiddf["region"]=panth._server
@@ -114,5 +114,5 @@ if __name__ == "__main__":
     # execute only if run as a script
     start=time.time()
     print("loadpuuid")
-    asyncio.run(main()) 
+    asyncio.run(main())
     print((time.time()-start)/60)
