@@ -55,7 +55,7 @@ def creatematchhistorydbifnotexists():
     cursor=connection.cursor()
     cursor.execute("""CREATE TABLE IF NOT EXISTS MatchHistories(
     id SERIAL PRIMARY KEY,
-    matchhistory json,
+    participants json,
     match_id text,
     region text,
     game_datetime bigint,
@@ -69,10 +69,10 @@ def creatematchhistorydbifnotexists():
 def grabmatchhistorydb():
     cursor=connection.cursor()
     sql = """
-    SELECT matchhistoryid
+    SELECT match_id
     FROM MatchHistories
     """
-    dbmatchhistory=list(pd.read_sql(sql, con=connection)['matchhistoryid'])
+    dbmatchhistory=list(pd.read_sql(sql, con=connection)['match_id'])
     return dbmatchhistory
 
 #call api to get list of matches for each player
@@ -153,9 +153,9 @@ async def maxmatchhistorylessthandate(days,panth):
     timestamp=(datetime.now() - timedelta(days=days)).timestamp()*1000
     cursor=connection.cursor()
     sql = """
-    SELECT max(matchhistoryid)
+    SELECT max(match_id)
     FROM MatchHistories
-    where date < %(date)s and region = %(region)s
+    where game_datetime < %(date)s and region = %(region)s
     """
     df=pd.read_sql(sql, con=connection, 
     params={"date":timestamp,"region":panth._server.upper()})
@@ -199,7 +199,7 @@ def insertmatchhistories(matchhistoryjson):
     df["json"]=df["info.participants"].apply(psycopg2.extras.Json)
     cursor=connection.cursor()
     insertdf=df[["json","metadata.match_id","region","info.game_datetime","info.game_version","info.queue_id", "info.game_variation"]]
-    query="INSERT INTO MatchHistories (matchhistory, match_id, region, game_datetime, game_version, queue_id, game_variation) VALUES (%s, %s, %s, %s, %s, %s)"
+    query="INSERT INTO MatchHistories (participants, match_id, region, game_datetime, game_version, queue_id, game_variation) VALUES (%s, %s, %s, %s, %s, %s, %s)"
     psycopg2.extras.execute_batch(cursor,query,(list(map(tuple, insertdf.to_numpy()))))
     connection.commit()
 
@@ -235,6 +235,7 @@ async def test():
     return await asyncio.gather(*tuple(tasks))
 
 if __name__ == "__main__":
+    creatematchhistorydbifnotexists()
     start=time.time()
     #time.sleep(120)
     print("loadmatchhistory")
