@@ -116,7 +116,7 @@ async def apigetmatch(matchhistoryids,panth):
             print(data, panth._server, e, matchhistoryids)
             i = 1000
             data = None
-    assert i < 60
+    #assert i < 60
     return data
 
 #get matchhistories to run through in sorted order
@@ -183,8 +183,9 @@ async def getmatchhistories(panth, days=2):
         matches = allmatches[i : i+1]
         #print ("startmatch" + str(i) + panth._server)
         matchjsons = await (apigetmatch(matches,panth))
-        if matchjsons is not None:
-            insertmatchhistories(matchjsons)
+        if matchjsons is None:
+            continue
+        insertmatchhistories(matchjsons)
         #print ("endmatch" + str(i) + panth._server)
         if (matchjsons[0]['info']['game_datetime'] < timestamp):
             break
@@ -236,6 +237,6 @@ if __name__ == "__main__":
     start=time.time()
     #time.sleep(120)
     print("loadmatchhistory")
-    #asyncio.run(main())
-    asyncio.run(getmatchhistories(panth))
+    asyncio.run(main())
+    #asyncio.run(getmatchhistories(panth))
     print((time.time()-start)/60)
