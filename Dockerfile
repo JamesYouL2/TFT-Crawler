@@ -4,13 +4,14 @@ FROM continuumio/anaconda3
 ENV DEBIAN_FRONTEND=dialog
 
 #Install libraries
+RUN pip install pandas --upgrade
 EXPOSE 5000
-#RUN apt-get install libpq-dev python3-dev -y
 RUN pip install psycopg2-binary
 RUN conda install -c conda-forge hdbscan
 RUN pip install tabulate
 RUN pip install pantheon
 RUN pip install nest_asyncio
+
 
 #Copy working directory
 COPY . /

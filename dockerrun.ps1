@@ -1,4 +1,6 @@
-﻿#1. Build Dockerfile
+#1. check out updatedocs branch
+git checkout updatedocs -q
+#2. Build Dockerfile
 docker build . -f Dockerfile -t tft-crawler
 #3. Docker Run
 docker run --rm -it -v ${PWD}:/app tft-crawler
