@@ -10,5 +10,5 @@ asyncio.run(loadpuuid.main())
 print ("Get matchhistory")
 asyncio.run(loadmatchhistory.main())
 
-print ("Get matchhistory")
-asyncio.run(save_matchdata.main())
+print ("Create Clusters")
+save_matchdata.main()
