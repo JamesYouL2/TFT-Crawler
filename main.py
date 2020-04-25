@@ -1,21 +1,14 @@
-import get_ladder
+import loadpuuid
+import loadmatchhistory
+import save_matchdata
+import asyncio
 
 #new Workflow
-print ("Get Ladder")
-get_ladder.main()
+print ("Get puuid")
+asyncio.run(loadpuuid.main())
 
-#get_puiid 
-print ("Get Puuid")
-exec(open('get_puuid.py').read())
+print ("Get matchhistory")
+asyncio.run(loadmatchhistory.main())
 
-#get_matches
-print ("Get Match JSON Names")
-exec(open('get_matches.py').read())
-
-#get_rawgames
-print ("Get Match JSON Files")
-exec(open('get_matchdata.py').read())
-
-#export tier list
-print ("Create Tier List")
-exec(open('save_matchdata.py').read())
+print ("Get matchhistory")
+asyncio.run(save_matchdata.main())

@@ -53,19 +53,19 @@ for region in regions:
 
     common['date'] = common['date'].fillna(value=datetime.now() - timedelta(days=365))
     common = common.loc[pd.to_datetime(common['date']) < (datetime.now() - timedelta(days=2))]
-
+    
     for index, row in common.iterrows():
         value = row['puuid']
-
+        
         #Switch Region to Superregion because of NA API
         if region in ('na1', 'br1', 'la1', 'la2', 'oc1'):
             superregion = 'americas'
-
-        if region in ('kr', 'jp1'):
-            superregion = 'asia'
         
         if region in ('eun1', 'euw1', 'ru', 'tr1'):
             superregion = 'europe'
+        
+        if region in ('kr', 'jp1'):
+            superregion = 'asia'
         
         url = config.get('default', 'matches_url').format(superregion, value, key.get('setup', 'api_key'))
         
@@ -85,13 +85,12 @@ for region in regions:
             #Break if invalid response
             if (response.status_code not in (200,429)):
                 print(response.status_code)
-                print(region)
-                print(url)
+                break
 
         except:
             print("something failed")
-            print(sys.exc_info()[0])
-            #break
+            #print(sys.exc_info()[0])
+            break
         
         time.sleep(.2)
 

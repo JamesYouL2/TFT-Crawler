@@ -1,6 +1,6 @@
 import pandas as pd 
 import json
-import datetime
+from datetime import datetime, timedelta
 import configparser
 import json
 import os
@@ -9,17 +9,44 @@ import numpy as np
 import hdbscan
 from dateutil import parser
 import csv
+import psycopg2
+import time
+
+config = configparser.ConfigParser()
+config.read('config.ini')
+regions = config.get('adjustable', 'regions').split(',')
+
+key = configparser.ConfigParser()
+key.read('keys.ini')
+
+#connect to postgres database
+connection = psycopg2.connect(
+    host = key.get('database', 'host'),
+    port = 5432,
+    user = key.get('database', 'user'),
+    password = key.get('database', 'password'),
+    database = key.get('database', 'database')
+    )
+
+#Get all json in array
+def loaddb(days):
+    timestamp=(datetime.now() - timedelta(days=days)).timestamp()*1000
+    cursor=connection.cursor()
+    sql = """
+    SELECT *
+    FROM MatchHistories where game_datetime > %(date)s
+    """
+    df=pd.read_sql(sql, con=connection, 
+    params={"date":timestamp})
+    return df
 
 #Clusters a dataframe and outputs data to markdown format
-def tfthdb(clusterdf, name):
+def tfthdb(clusterdf, name, unitscol, traitscol, items):
     #HDB Scan
     hdb = hdbscan.HDBSCAN(min_cluster_size=
     int(np.floor(len(clusterdf)/10)), 
     min_samples=1,
     cluster_selection_method='eom')
-
-    unitscol=list(unitspivot.columns)
-    traitscol=list(traitspivot.columns)
 
     cols = unitscol + traitscol
 
@@ -59,75 +86,62 @@ def tfthdb(clusterdf, name):
             hdbitemdf = pd.concat([hdbdf,itemdf])
             allhdbdf = pd.concat([allhdbdf,hdbitemdf],axis=1)
 
-    #Export to MarkDown
-    with open('docs/' + name + '.md','w') as tierlist:
-        writer = csv.writer(tierlist)
-        writer.writerow([df['game_version'].max()])
-        tierlist.write('\n')
-        writer.writerow([str(datetime.datetime.fromtimestamp(df['game_datetime'].max()/1e3))])
-        tierlist.write('\n')
-        allhdbdf.sort_index().to_markdown(tierlist)
-        tierlist.write('\n')
+    return allhdbdf
+    
 
-config = configparser.ConfigParser()
-config.read('config.ini')
-regions = config.get('adjustable', 'regions').split(',')
+def main():
+    df = loaddb(days = 2)
+    
+    df=df.loc[df['game_version'].str.rsplit('.',2).str[0]==df['game_version'].str.rsplit('.',2).str[0].max()]
 
-#Get all json in array
-allrecords = []
-for region in regions:
-    matchhistoryfile = config.get('setup','ladder_dir') + '/matchhistory-{}.txt'.format(region)
-    matchhistory = pd.read_csv(matchhistoryfile, squeeze=True)
-    mintime = datetime.datetime.now() - datetime.timedelta(days=2)
-    oslist=os.listdir(config.get('setup', 'raw_data_dir') + '/{}'.format(region))
-    intersectionset = sorted(set(list(matchhistory + '.json')).intersection(oslist),reverse=True)
-    for name in intersectionset:
-        with open(config.get('setup', 'raw_data_dir') + '/{}/{}'.format(region, name), 'r', encoding="utf-8") as file: 
-            data = json.load(file)
-            s=data['game_datetime']
-            date_time_obj = datetime.datetime.fromtimestamp(s / 1e3)
-            if mintime > date_time_obj:
-                break
-            if data['queue_id'] != 1100:
-                continue
-            data.update({'match_id':name})
-            allrecords.append(data)
+    allrecords = df.to_json(orient='records')
 
-#get traits and units and items
-traits = pd.json_normalize(allrecords, 
-record_path=['participants','traits'],
-meta=['match_id',['participants','placement'],['participants','puuid']])
- 
-units = pd.json_normalize(allrecords,
-record_path=['participants','units'],
-meta=['match_id',['participants','placement'],['participants','puuid']])
+    traits = pd.json_normalize(json.loads(allrecords), 
+    record_path=['participants','traits'],
+    meta=['match_id','game_variation',['participants','placement'],['participants','puuid']])
+    
+    units = pd.json_normalize(json.loads(allrecords), 
+    record_path=['participants','units'],
+    meta=['match_id','game_variation',['participants','placement'],['participants','puuid']])
 
-items = pd.json_normalize(allrecords,
-record_path=['participants','units', 'items'],
-meta=['match_id',['participants','placement'],['participants','puuid'],['participants','units','character_id']])
-items.rename(columns={0: "item"},inplace=True)
-items['count']=1
-items=items.loc[items['item']>10]
-items=items.merge(pd.read_json('items.json'),left_on='item',right_on='id')
+    items = pd.json_normalize(json.loads(allrecords),
+    record_path=['participants','units', 'items'],
+    meta=['match_id','game_variation',['participants','placement'],['participants','puuid'],['participants','units','character_id']])
 
-#Pivot and combine spreadsheets
-unitspivot=pd.pivot_table(units,index=['match_id','participants.placement'], columns='character_id',values='tier')
-traitspivot=pd.pivot_table(traits,index=['match_id','participants.placement'], columns='name',values='tier_current')
-#itemspivot=pd.pivot_table(items,index=['match_id','participants.placement'], columns=['name','participants.units.character_id'],values='count',aggfunc=np.sum)
+    items.rename(columns={0: "item"},inplace=True)
+    items['count']=1
+    #items=items.loc[items['item']>10]
+    items=items.merge(pd.read_json('items.json'),left_on='item',right_on='id')
 
-combinepivot = unitspivot.join(traitspivot).reset_index()
+    #Pivot and combine spreadsheets
+    unitspivot=pd.pivot_table(units,index=['match_id','participants.placement', 'game_variation'], columns='character_id',values='tier')
+    traitspivot=pd.pivot_table(traits,index=['match_id','participants.placement', 'game_variation'], columns='name',values='tier_current')
+    #itemspivot=pd.pivot_table(items,index=['match_id','participants.placement'], columns=['name','participants.units.character_id'],values='count',aggfunc=np.sum)
 
-print(combinepivot)
+    combinepivot = unitspivot.join(traitspivot).reset_index()
 
-#Only get most recent game version
-df=pd.json_normalize(allrecords)
-df['game_version'].str
-df=df.loc[df['game_version'].str.rsplit('.',2).str[0]==df['game_version'].str.rsplit('.',2).str[0].max()]
-#print(df['game_datetime'].apply(lambda x: datetime.datetime.fromtimestamp(x / 1e3).day).value_counts())
+    unitscol=list(unitspivot.columns)
+    traitscol=list(traitspivot.columns)
+    itemscol=list(items.columns)
 
-clusterdf=combinepivot.merge(df,on='match_id')[list(combinepivot.columns)+list(['game_variation'])]
+    for variation in combinepivot['game_variation'].unique():
+        print(variation)
+        variationdf = combinepivot.loc[combinepivot['game_variation']==variation]
+        hdbdfvariation=tfthdb(variationdf, variation, unitscol, traitscol, items)
 
-for variation in clusterdf['game_variation'].unique():
-    print(variation)
-    variationdf = clusterdf.loc[clusterdf['game_variation']==variation]
-    tfthdb(variationdf, variation)
+        #Export to MarkDown
+        with open('docs/' + variation + '.md','w') as tierlist:
+            writer = csv.writer(tierlist)
+            #writer.writerow([df['game_version'].max()])
+            tierlist.write('\n')
+            writer.writerow([str(datetime.fromtimestamp(df['game_datetime'].max()/1e3))])
+            tierlist.write('\n')
+            hdbdfvariation.sort_index().to_markdown(tierlist)
+            tierlist.write('\n')
+
+if __name__ == "__main__":
+    # execute only if run as a script
+    start=time.time()
+    print("hdbscan")
+    main()
+    print((time.time()-start)/60)

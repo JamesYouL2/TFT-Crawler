@@ -9,6 +9,6 @@ nav:
         - 4CostCarousel: TFT3_GameVariation_FourCostFirstCarousel.md
         - FreeReroll: TFT3_GameVariation_FreeRerolls.md
         - MediumLegends: TFT3_GameVariation_BigLittleLegends.md
-    - About: about.md
-    - MKDocs: mkdocs.md
+    - About:
+        - About: about.md
 theme: readthedocs
