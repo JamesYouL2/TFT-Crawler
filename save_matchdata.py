@@ -116,7 +116,7 @@ def main():
     #Pivot and combine spreadsheets
     unitspivot=pd.pivot_table(units,index=['match_id','participants.placement', 'game_variation'], columns='character_id',values='tier')
     traitspivot=pd.pivot_table(traits,index=['match_id','participants.placement', 'game_variation'], columns='name',values='tier_current')
-    #itemspivot=pd.pivot_table(items,index=['match_id','participants.placement'], columns=['name','participants.units.character_id'],values='count',aggfunc=np.sum)
+    #itemspivot=pd.pivot_table(items,index=['match_id','participants.placement', 'game_variation'], columns=['participants.units.character_id'],values='count',aggfunc=np.sum)
 
     combinepivot = unitspivot.join(traitspivot).reset_index()
 
