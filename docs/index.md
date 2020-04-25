@@ -7,27 +7,36 @@ The original project is credited to [dawyi](https://github.com/dawyi/) and can b
 It used to crawl blitz before Riot released their own API.
 
 ## Setup
-Open the **keys.ini** file. It should look like the following below:
+Open the **keytemplate.ini** file. It should look like the following below:
 
-```python
 [setup]
 ; INPUT YOUR OWN API KEY FROM https://developer.riotgames.com/
 api_key = RG_API
 
 Obtain an API key from [Riot API](https://developer.riotgames.com/) and update the api_key variable with your API key.<br/><br/>
 
+Also, I'm storing all the data in a postgres database on AWS. Instructions found [here].(https://aws.amazon.com/getting-started/tutorials/create-connect-postgresql-db/)
+
+[database]
+host = 
+user = 
+password = 
+database =
+
+Rename the keytemplate.ini file to keys.ini. 
+
+To apply the spreadsheet to google, you need to create a json file called secrets.json so that pygsheets can use it.
+
 ## Usage
 Run the programs in this order:
-```
-main.py
-```
+
+main.py (calls the other 3 scripts)
+
 Docker Instructions:
-Also can run Dockerrun.ps1 
+Also can run Dockerrun.ps1 if you have a docker desktop (using linux container).
 or 
 #1. Build Dockerfile
 docker build . -t tft-crawler
 #2. Docker Run
 docker run --rm -it -v ${PWD}:/app tft-crawler
 in bash/git.
-
-

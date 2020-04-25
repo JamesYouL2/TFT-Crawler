@@ -1,12 +1,14 @@
-# TFT-Crawler
-TFT API crawler for the auto-chess game Teamfight Tactics.<br/>
+#TFTSheet
+
+TFTSheet is a project built to display a TFT tier list in a google spreadsheet based master+ games on the most recent patch.
+
 The original project is credited to [dawyi](https://github.com/dawyi/) and can be found [here](https://github.com/dawyi/TFT-Crawler).
+
 It used to crawl blitz before Riot released their own API.
 
 ## Setup
-Open the **keys.ini** file. It should look like the following below:
+Open the **keytemplate.ini** file. It should look like the following below:
 
-```python
 [setup]
 ; INPUT YOUR OWN API KEY FROM https://developer.riotgames.com/
 api_key = RG_API
@@ -21,13 +23,17 @@ user =
 password = 
 database =
 
+Rename the keytemplate.ini file to keys.ini. 
+
+To apply the spreadsheet to google, you need to create a json file called secrets.json so that pygsheets can use it.
+
 ## Usage
 Run the programs in this order:
-```
+
 main.py (calls the other 3 scripts)
-```
+
 Docker Instructions:
-Also can run Dockerrun.ps1 (pushes tierlist update to git repo as updatedocs branch) if you have a docker desktop set up under linux.
+Also can run Dockerrun.ps1 if you have a docker desktop (using linux container).
 or 
 #1. Build Dockerfile
 docker build . -t tft-crawler
