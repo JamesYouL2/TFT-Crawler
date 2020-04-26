@@ -135,13 +135,14 @@ def main():
         hdbdfvariation=tfthdb(variationdf, variation, unitscol, traitscol, items)
         variationname = variation[variation.rindex('_')+1:]
 
-        #Update googlesheets
+        #check googlesheets
         try:
-            sh.worksheet_by_title(variationname)
+            wksheet=sh.worksheet_by_title(variationname)
         except:
             sh.add_worksheet(variationname)
             wksheet=sh.worksheet_by_title(variationname)
-            wksheet.set_dataframe(hdbdfvariation.sort_index(),(1,1))
+        #Update worksheets
+        wksheet.set_dataframe(hdbdfvariation.sort_index(),(1,1))
     
     #update static values
     wks=sh.worksheet_by_title('Notes')
