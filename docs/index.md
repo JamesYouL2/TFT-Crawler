@@ -32,6 +32,7 @@ To apply the spreadsheet to google, you need to create a json file called google
 
 ## Usage
 main.py calls the other 3 scripts, but there are going to be quite a few libraries that you'll need to install. The dockerfile will list them assuming you have an anaconda install.
+Don't install the psycopg2 binary, just install psycopg2.
 
-Docker Instructions:
+Docker Instructions (slow):
 Also can run Dockerrun.ps1 if you have a docker desktop (using linux container).
