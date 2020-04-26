@@ -45,7 +45,7 @@ def loaddb(days):
 def tfthdb(clusterdf, name, unitscol, traitscol, items):
     #HDB Scan
     hdb = hdbscan.HDBSCAN(min_cluster_size=
-    int(np.floor(len(clusterdf)/10)), 
+    int(np.floor(len(clusterdf)/12)), 
     min_samples=1,
     cluster_selection_method='eom')
 
@@ -141,6 +141,7 @@ def main():
         except:
             sh.add_worksheet(variationname)
             wksheet=sh.worksheet_by_title(variationname)
+            
         #Update worksheets
         wksheet.set_dataframe(hdbdfvariation.sort_index(),(1,1))
     
