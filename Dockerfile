@@ -11,7 +11,7 @@ RUN conda install -c conda-forge hdbscan
 RUN pip install tabulate
 RUN pip install pantheon
 RUN pip install nest_asyncio
-
+RUN pip install pygsheets
 
 #Copy working directory
 COPY . /
