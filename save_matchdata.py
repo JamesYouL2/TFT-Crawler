@@ -45,7 +45,7 @@ def loaddb(days):
 def tfthdb(clusterdf, name, unitscol, traitscol, items):
     #HDB Scan
     hdb = hdbscan.HDBSCAN(min_cluster_size=
-    int(np.floor(len(clusterdf)/12)), 
+    int(np.floor(len(clusterdf)/15)), 
     min_samples=1,
     cluster_selection_method='eom')
 
@@ -125,16 +125,14 @@ def main():
     traitscol=list(traitspivot.columns)
     itemscol=list(items.columns)
 
-    #Open Sheet
-    gc = pygsheets.authorize(service_file='./googlesheet.json')
-    sh = gc.open('TFTSheet')
-
     for variation in combinepivot['game_variation'].unique():
         #print(variation)
         variationdf = combinepivot.loc[combinepivot['game_variation']==variation]
         hdbdfvariation=tfthdb(variationdf, variation, unitscol, traitscol, items)
         variationname = variation[variation.rindex('_')+1:]
-
+        
+        gc = pygsheets.authorize(service_file='./googlesheet.json')
+        sh = gc.open('TFTSheets')
         #check googlesheets
         try:
             wksheet=sh.worksheet_by_title(variationname)
