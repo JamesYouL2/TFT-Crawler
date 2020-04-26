@@ -53,7 +53,7 @@ async def getchallengerladder(panth):
             print(e, panth._server)
             await asyncio.sleep(random.uniform(0,240))       
         except Exception as e:
-            print(e)
+            raise e
 
 #Create db if does not yet exist
 def createdbifnotexists():
@@ -69,7 +69,7 @@ def createdbifnotexists():
     connection.commit()
 
 #get cached data
-def grabpuiiddb():
+async def grabpuiiddb():
     cursor=connection.cursor()
     sql = """
     SELECT *
@@ -80,9 +80,9 @@ def grabpuiiddb():
 
 #get all names without puuid
 async def getnameswithoutpuuid(panth):
-    puuid = grabpuiiddb()
-    asyncio.set_event_loop(asyncio.new_event_loop())
+    puuid = await grabpuiiddb()
     ladder = await getchallengerladder(panth)
+    print(panth._server)
     summonernames = ladder[ladder.merge(puuid,left_on=['summonerId','region'], right_on=['summonerid','region'], how='left')['puuid'].isnull()]
     return summonernames
 
@@ -109,7 +109,7 @@ async def insertpuuid(panth):
     summonerids = summonernames['summonerId']
     if len(summonerids)>0:
         for summonerid in summonerids:
-            allpuuid = loop.run_until_complete(apipuuid(summonerid,panth))
+            allpuuid = await apipuuid(summonerid,panth)
             puuiddf=pd.json_normalize(allpuuid)[["name", "id", "puuid"]]
             puuiddf["region"]=panth._server
             cursor=connection.cursor()

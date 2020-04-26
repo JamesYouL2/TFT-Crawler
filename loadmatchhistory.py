@@ -38,9 +38,6 @@ def requestsLog(url, status, headers):
 region = "euw1"
 panth = pantheon.Pantheon(region, key.get('setup', 'api_key'), requestsLoggingFunction=requestsLog, errorHandling=True, debug=True)
 
-#get puuidb first to see if async doesn't work
-puuiddb = grabpuiiddb()
-
 #connect to postgres database
 connection = psycopg2.connect(
     host = key.get('database', 'host'),
@@ -125,6 +122,8 @@ async def getpuuidtorun(panth):
     #print('start'+panth._server)
     asyncio.set_event_loop(asyncio.new_event_loop())
     challenger = asyncio.run(getchallengerladder(panth))
+    #get puuidb first to see if async doesn't work
+    puuiddb = await grabpuiiddb()
     ladder = puuiddb.merge(challenger,left_on=["summonerid","region"],right_on=["summonerId","region"])
     ladder = ladder.loc[ladder['puuid'].notnull()]
     #print(str(len(ladder))+'ladder'+panth._server)
