@@ -28,6 +28,16 @@ key.read('keys.ini')
 #create loop
 loop = asyncio.get_event_loop()
 
+#connect to postgres database
+connection = psycopg2.connect(
+    host = key.get('database', 'host'),
+    port = 5432,
+    user = key.get('database', 'user'),
+    password = key.get('database', 'password'),
+    database = key.get('database', 'database')
+    )
+cursor=connection.cursor()
+
 def requestsLog(url, status, headers):
     print(url[:100])
     #print(status)
@@ -38,18 +48,8 @@ def requestsLog(url, status, headers):
 region = "euw1"
 panth = pantheon.Pantheon(region, key.get('setup', 'api_key'), requestsLoggingFunction=requestsLog, errorHandling=True, debug=True)
 
-#connect to postgres database
-connection = psycopg2.connect(
-    host = key.get('database', 'host'),
-    port = 5432,
-    user = key.get('database', 'user'),
-    password = key.get('database', 'password'),
-    database = key.get('database', 'database')
-    )
-
 #Create db if does not yet exist
 def creatematchhistorydbifnotexists():
-    cursor=connection.cursor()
     cursor.execute("""CREATE TABLE IF NOT EXISTS MatchHistories(
     id SERIAL PRIMARY KEY,
     participants json,
@@ -64,7 +64,6 @@ def creatematchhistorydbifnotexists():
 
 #get matchhistory data
 def grabmatchhistorydb():
-    cursor=connection.cursor()
     sql = """
     SELECT match_id
     FROM MatchHistories
@@ -150,7 +149,6 @@ async def getmatchhistorylistfromapi(panth):
 
 async def maxmatchhistorylessthandate(days,panth):
     timestamp=(datetime.now() - timedelta(days=days)).timestamp()*1000
-    cursor=connection.cursor()
     sql = """
     SELECT max(match_id)
     FROM MatchHistories
@@ -196,7 +194,6 @@ def insertmatchhistories(matchhistoryjson):
     df=pd.json_normalize(matchhistoryjson)
     df["region"]=df["metadata.match_id"].str.split("_",expand=True)[0]
     df["json"]=df["info.participants"].apply(psycopg2.extras.Json)
-    cursor=connection.cursor()
     insertdf=df[["json","metadata.match_id","region","info.game_datetime","info.game_version","info.queue_id", "info.game_variation"]]
     query="INSERT INTO MatchHistories (participants, match_id, region, game_datetime, game_version, queue_id, game_variation) VALUES (%s, %s, %s, %s, %s, %s, %s)"
     psycopg2.extras.execute_batch(cursor,query,(list(map(tuple, insertdf.to_numpy()))))

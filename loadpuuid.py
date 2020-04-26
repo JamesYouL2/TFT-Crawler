@@ -24,6 +24,7 @@ key.read('keys.ini')
 #create loop
 loop = asyncio.get_event_loop()
 
+
 #for debugging
 region = "na1"
 panth = pantheon.Pantheon(region, key.get('setup', 'api_key'), errorHandling=True, debug=True)
@@ -36,6 +37,7 @@ connection = psycopg2.connect(
     password = key.get('database', 'password'),
     database = key.get('database', 'database')
     )
+cursor=connection.cursor()
 
 #get tft watcher
 #tft_watcher=TftWatcher(api_key=key.get('setup', 'api_key'))
@@ -57,7 +59,6 @@ async def getchallengerladder(panth):
 
 #Create db if does not yet exist
 def createdbifnotexists():
-    cursor=connection.cursor()
     #cursor.execute("""DROP TABLE IF EXISTS LadderPuuid""")
     connection.commit()
     cursor.execute("""CREATE TABLE IF NOT EXISTS LadderPuuid(
@@ -70,7 +71,6 @@ def createdbifnotexists():
 
 #get cached data
 async def grabpuiiddb():
-    cursor=connection.cursor()
     sql = """
     SELECT *
     FROM LadderPuuid
@@ -112,7 +112,6 @@ async def insertpuuid(panth):
             allpuuid = await apipuuid(summonerid,panth)
             puuiddf=pd.json_normalize(allpuuid)[["name", "id", "puuid"]]
             puuiddf["region"]=panth._server
-            cursor=connection.cursor()
             query='INSERT INTO LadderPuuid (summonerName, summonerId, puuid, region) VALUES (%s, %s, %s, %s)'
             psycopg2.extras.execute_batch(cursor,query,(list(map(tuple, puuiddf.to_numpy()))))
             connection.commit()
@@ -125,7 +124,7 @@ async def main():
         panth = pantheon.Pantheon(region, key.get('setup', 'api_key'), errorHandling=True, debug=False)
         tasks.append(insertpuuid(panth))
     await asyncio.gather(*tuple(tasks))
-    connection.close()
+    #connection.close()
 
 if __name__ == "__main__":
     # execute only if run as a script
