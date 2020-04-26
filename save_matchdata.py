@@ -11,6 +11,7 @@ from dateutil import parser
 import csv
 import psycopg2
 import time
+import pygsheets
 
 config = configparser.ConfigParser()
 config.read('config.ini')
@@ -124,20 +125,28 @@ def main():
     traitscol=list(traitspivot.columns)
     itemscol=list(items.columns)
 
+    #Open Sheet
+    gc = pygsheets.authorize(service_file='./googlesheet.json')
+    sh = gc.open('TFTSheet')
+
     for variation in combinepivot['game_variation'].unique():
-        print(variation)
+        #print(variation)
         variationdf = combinepivot.loc[combinepivot['game_variation']==variation]
         hdbdfvariation=tfthdb(variationdf, variation, unitscol, traitscol, items)
+        variationname = variation[variation.rindex('_')+1:]
 
-        #Export to MarkDown
-        with open('docs/' + variation + '.md','w') as tierlist:
-            writer = csv.writer(tierlist)
-            #writer.writerow([df['game_version'].max()])
-            tierlist.write('\n')
-            writer.writerow([str(datetime.fromtimestamp(df['game_datetime'].max()/1e3))])
-            tierlist.write('\n')
-            hdbdfvariation.sort_index().to_markdown(tierlist)
-            tierlist.write('\n')
+        #Update googlesheets
+        try:
+            sh.worksheet_by_title(variationname)
+        except:
+            sh.add_worksheet(variationname)
+            wksheet=sh.worksheet_by_title(variationname)
+            wksheet.set_dataframe(hdbdfvariation.sort_index(),(1,1))
+    
+    #update static values
+    wks=sh.worksheet_by_title('Notes')
+    wks.update_value((1, 1), str(datetime.fromtimestamp(df['game_datetime'].max()/1e3)))
+    wks.update_value((2, 1), df['game_version'].str.rsplit('.',2).str[0].max())
 
 if __name__ == "__main__":
     # execute only if run as a script

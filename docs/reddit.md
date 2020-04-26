@@ -19,8 +19,8 @@ Cons:
 1. I do not have access to in-round data. I am only looking at endgame comps. Without partnering with a website that has an app that tracks games, data cannot tell you how to position or transition or level up. 
 All this data tells you is that certain comps are good and that certain comps might be overrrated.
 
-2. You are not going to find every relevant comp in the game. I don't show Star Guardian Sorcerers after the nerf or Protector comps. 
+2. You are not going to find every relevant comp in the game. I don't show Star Guardian Sorcerers after the nerf or Protector comps. Also note that I am not clustering every comp and I am not showing those comps.
 
-3. I don't know javascript and have almost zero front end skills. This is just not going to look as good as kda.gg or metatft.com.\
+3. I don't know javascript and have almost zero front end skills. This is just not going to look as good as kda.gg or metatft.com.
 
 Thanks for reading, please give me feedback and even better, make some pull requests.
