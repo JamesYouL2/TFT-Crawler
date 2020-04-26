@@ -139,8 +139,8 @@ async def getmatchhistorylistfromapi(panth):
         puuids = puuidlist[i : i + 1]
         #print ("startmatchlist" + str(i) + panth._server)
         matchlists = await apigetmatchlist(puuids["puuid"],panth)
-        #print ("endmatchlist" + str(i) + panth._server)
-        alllists = matchlists + alllists
+        if matchlists is not None:
+            alllists = matchlists + alllists
     #matchlists = await apigetmatchlist(puuidlist["puuid"],panth)
     flatmatchlist = [item for sublist in alllists for item in sublist]
     allmatches = list(set(flatmatchlist))
