@@ -9,6 +9,8 @@ import nest_asyncio
 import functools
 import concurrent.futures
 import time
+import random
+import sys
 
 nest_asyncio.apply()
 
@@ -40,13 +42,18 @@ connection = psycopg2.connect(
 
 #get all challenger summoner IDs and Summoner names
 async def getchallengerladder(panth):
-    try:
-        data = await panth.getTFTChallengerLeague()
-        ladder=pd.DataFrame(pd.json_normalize(data['entries'])[['summonerId','summonerName']])
-        ladder['region']=panth._server
-        return ladder
-    except Exception as e:
-        print(e)
+    data = pantheon.exc.RateLimit
+    while type(data) == type:
+        try:
+            data = await panth.getTFTChallengerLeague()
+            ladder=pd.DataFrame(pd.json_normalize(data['entries'])[['summonerId','summonerName']])
+            ladder['region']=panth._server
+            return ladder
+        except pantheon.exc.RateLimit as e:
+            print(e, panth._server)
+            await asyncio.sleep(random.uniform(0,240))       
+        except Exception as e:
+            print(e)
 
 #Create db if does not yet exist
 def createdbifnotexists():
@@ -80,22 +87,35 @@ async def getnameswithoutpuuid(panth):
     return summonernames
 
 #call riot puuid
-async def apipuuid(summonerids,panth):
-    tasks = [panth.getTFTSummoner(summonerid) for summonerid in summonerids]
-    return await asyncio.gather(*tasks)
+async def apipuuid(summonerid,panth):
+    data = pantheon.exc.RateLimit
+    #jitter the wait
+    await asyncio.sleep(random.uniform(0,1))
+    while type(data) == type:
+        try:
+            data = await panth.getTFTSummoner(summonerid)
+        except pantheon.exc.RateLimit as e:
+            print(e, panth._server)
+            await asyncio.sleep(random.uniform(0,240))
+        except:
+            e = sys.exc_info()[0]
+            raise e
+    #assert i < 60
+    return data
 
 #wrapper to call api for summonerids to get puuids for and then insert
 async def insertpuuid(panth):
     summonernames =  await getnameswithoutpuuid(panth)
     summonerids = summonernames['summonerId']
     if len(summonerids)>0:
-        allpuuid = loop.run_until_complete(apipuuid(summonerids,panth))
-        puuiddf=pd.json_normalize(allpuuid)[["name", "id", "puuid"]]
-        puuiddf["region"]=panth._server
-        cursor=connection.cursor()
-        query='INSERT INTO LadderPuuid (summonerName, summonerId, puuid, region) VALUES (%s, %s, %s, %s)'
-        psycopg2.extras.execute_batch(cursor,query,(list(map(tuple, puuiddf.to_numpy()))))
-        connection.commit()
+        for summonerid in summonerids:
+            allpuuid = loop.run_until_complete(apipuuid(summonerid,panth))
+            puuiddf=pd.json_normalize(allpuuid)[["name", "id", "puuid"]]
+            puuiddf["region"]=panth._server
+            cursor=connection.cursor()
+            query='INSERT INTO LadderPuuid (summonerName, summonerId, puuid, region) VALUES (%s, %s, %s, %s)'
+            psycopg2.extras.execute_batch(cursor,query,(list(map(tuple, puuiddf.to_numpy()))))
+            connection.commit()
 
 async def main():
     createdbifnotexists()
