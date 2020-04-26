@@ -4,8 +4,8 @@ FROM continuumio/anaconda3
 ENV DEBIAN_FRONTEND=dialog
 
 #Install libraries
-RUN pip install pandas --upgrade
 EXPOSE 5000
+RUN pip install pandas --upgrade
 RUN pip install psycopg2-binary
 RUN conda install -c conda-forge hdbscan
 RUN pip install tabulate
