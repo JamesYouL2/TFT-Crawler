@@ -141,6 +141,7 @@ def main():
             wksheet=sh.worksheet_by_title(variationname)
             
         #Update worksheets
+        wksheet.clear()
         wksheet.set_dataframe(hdbdfvariation.sort_index(),(1,1))
     
     #update static values
