@@ -95,6 +95,8 @@ def main():
     
     df=df.loc[df['game_version'].str.rsplit('.',2).str[0]==df['game_version'].str.rsplit('.',2).str[0].max()]
 
+    assert len(df) >= 1000, "less than 1000 matches in newest patch"
+
     allrecords = df.to_json(orient='records')
 
     traits = pd.json_normalize(json.loads(allrecords), 
@@ -128,6 +130,7 @@ def main():
     for variation in combinepivot['game_variation'].unique():
         #print(variation)
         variationdf = combinepivot.loc[combinepivot['game_variation']==variation]
+        assert len(variationdf) >= 1000, "less than 1000 records for variation"
         hdbdfvariation=tfthdb(variationdf, variation, unitscol, traitscol, items)
         variationname = variation[variation.rindex('_')+1:]
         

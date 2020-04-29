@@ -17,5 +17,5 @@ print("GetMatchHistoryTime:",(time.time()-start)/60)
 
 start=time.time()
 print ("Create Clusters")
-save_matchdata.main()
+#save_matchdata.main()
 print("GetClusterTime:",(time.time()-start)/60)
