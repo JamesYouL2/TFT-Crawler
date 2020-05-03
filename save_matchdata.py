@@ -73,7 +73,7 @@ def tfthdb(clusterdf, name, unitscol, traitscol, items):
         if (i != 0):
             rawhdbdf=pd.DataFrame(clusterdf[unitscol][clusterdf['hdb']==i].count().sort_values(ascending=False))
             #get 15 most popular items per unit
-            rawitemdf=itemshdb[itemshdb['hdb']==i].groupby(['name','participants.units.character_id']).count()['count'].sort_values(ascending=False).head(15).reset_index()
+            rawitemdf=itemshdb[itemshdb['hdb']==i].groupby(['name','participants.units.character_id']).count()['count'].sort_values(ascending=False).head(25).reset_index()
             #get 15 most popular units
             hdbdf= (100* rawhdbdf / (clusterdf['hdb']==i).sum()).round().head(15).reset_index()
             hdbdf.loc[-2] = ['Count',len(clusterdf[clusterdf['hdb']==i])]
