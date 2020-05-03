@@ -45,7 +45,7 @@ def loaddb(days):
 def tfthdb(clusterdf, name, unitscol, traitscol, items):
     #HDB Scan
     hdb = hdbscan.HDBSCAN(min_cluster_size=
-    int(np.floor(len(clusterdf)/15)), 
+    int(np.floor(len(clusterdf)/20)), 
     min_samples=1,
     cluster_selection_method='eom')
 
