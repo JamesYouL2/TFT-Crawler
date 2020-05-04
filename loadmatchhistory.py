@@ -150,7 +150,7 @@ async def getmatchhistorylistfromapi(panth):
 async def maxmatchhistorylessthandate(days,panth):
     timestamp=(datetime.now() - timedelta(days=days)).timestamp()*1000
     sql = """
-    SELECT cast(max(substring(match_id,5,100)) as int)
+    SELECT cast(max(substring(match_id,strpos(match_id,'_')+1,100)) as BIGINT)
     FROM MatchHistories
     where game_datetime < %(date)s and region = %(region)s
     """
@@ -165,7 +165,7 @@ async def cleanmatchhistorylist(panth, days):
     maxmatchhistoryid = await maxmatchhistorylessthandate(days=days,panth=panth)
     print(maxmatchhistoryid)
     if maxmatchhistoryid is not None:
-        matchhistory = [i for i in matchhistory if int(i[4:]) >= int(maxmatchhistoryid)]
+        matchhistory = [i for i in matchhistory if int(i.split("_")[1]) >= int(maxmatchhistoryid)]
     dbmatchhistory = grabmatchhistorydb()
     return sorted(np.setdiff1d(matchhistory,dbmatchhistory).tolist(),reverse=True)
 
