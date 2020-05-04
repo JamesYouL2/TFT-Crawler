@@ -45,7 +45,7 @@ def requestsLog(url, status, headers):
     pass
     
 #for debugging
-region = "euw1"
+region = "tr1"
 panth = pantheon.Pantheon(region, key.get('setup', 'api_key'), requestsLoggingFunction=requestsLog, errorHandling=True, debug=True)
 
 #Create db if does not yet exist
@@ -150,7 +150,7 @@ async def getmatchhistorylistfromapi(panth):
 async def maxmatchhistorylessthandate(days,panth):
     timestamp=(datetime.now() - timedelta(days=days)).timestamp()*1000
     sql = """
-    SELECT max(match_id)
+    SELECT cast(max(substring(match_id,5,100)) as int)
     FROM MatchHistories
     where game_datetime < %(date)s and region = %(region)s
     """
@@ -165,7 +165,7 @@ async def cleanmatchhistorylist(panth, days):
     maxmatchhistoryid = await maxmatchhistorylessthandate(days=days,panth=panth)
     print(maxmatchhistoryid)
     if maxmatchhistoryid is not None:
-        matchhistory = [i for i in matchhistory if i >= maxmatchhistoryid]
+        matchhistory = [i for i in matchhistory if int(i[4:]) >= int(maxmatchhistoryid)]
     dbmatchhistory = grabmatchhistorydb()
     return sorted(np.setdiff1d(matchhistory,dbmatchhistory).tolist(),reverse=True)
 
