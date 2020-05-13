@@ -93,7 +93,7 @@ def tfthdb(clusterdf, name, unitscol, traitscol, items):
 def main():
     df = loaddb(days = 2)
     
-    df=df.loc[df['game_version'].str.rsplit('.',2).str[0]==df['game_version'].str.rsplit('.',2).str[0].max()]
+    df=df.loc[df['game_version'].str.rsplit('.',2).str[0]==df['game_version'].str.rsplit('.',2).str[0][len(df)-1]]
 
     assert len(df) >= 100, "less than 100 matches in newest patch"
 
@@ -151,7 +151,7 @@ def main():
     #update static values
     wks=sh.worksheet_by_title('Notes')
     wks.update_value((1, 1), str(datetime.fromtimestamp(df['game_datetime'].max()/1e3)))
-    wks.update_value((2, 1), df['game_version'].str.rsplit('.',2).str[0].max())
+    wks.update_value((2, 1), df['game_version'].str.rsplit('.',2).str[0][len(df)-1])
 
 if __name__ == "__main__":
     # execute only if run as a script
