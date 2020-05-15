@@ -7,10 +7,10 @@ def outputtodrive(df, variation):
     gauth = GoogleAuth()
     drive = GoogleDrive(gauth)
 
-    gfile = drive.CreateFile({'title': variation + '.csv', 'mimeType':'text/csv',
+    gfile = drive.CreateFile({'title': variation + '.json', 'mimeType':'application/json',
             "parents": [{"kind": "drive#fileLink","id": '18XgAoGNszXgbYFYwGyfbZgB23LwceleV'}]})
 
-    gfile.SetContentString(df.to_csv())
+    gfile.SetContentString(df.to_json())
     gfile.Upload()
 
 #Trash all files in folder
