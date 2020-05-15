@@ -11,3 +11,4 @@ config.ini
 log.txt
 keys.ini
 site
+*.yaml
