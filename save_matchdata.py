@@ -12,6 +12,7 @@ import csv
 import psycopg2
 import time
 import pygsheets
+from googledrivesave import trashfolder, outputtodrive
 
 config = configparser.ConfigParser()
 config.read('config.ini')
@@ -131,6 +132,8 @@ def main():
 
     assert combinepivot['game_variation'].value_counts().min() >= 100, "less than 100 records for variation"
 
+    trashfolder()
+
     for variation in combinepivot['game_variation'].unique():
         #print(variation)
         variationdf = combinepivot.loc[combinepivot['game_variation']==variation]
@@ -149,12 +152,12 @@ def main():
         #Update worksheets
         wksheet.clear()
         wksheet.set_dataframe(hdbdfvariation.sort_index(),(1,1))
-        hdbdfvariation.to_json()
+        outputtodrive(hdbdfvariation.sort_index(),variation)
     
     #update static values
     wks=sh.worksheet_by_title('Notes')
     wks.update_value((1, 1), str(datetime.fromtimestamp(df['game_datetime'].max()/1e3)))
-    wks.update_value((2, 1), gameversion)
+
 
 if __name__ == "__main__":
     # execute only if run as a script
