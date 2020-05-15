@@ -57,12 +57,12 @@ def tfthdb(clusterdf, name, unitscol, traitscol, items):
     print('HDB Scan')
     clusterer=hdb.fit(clusterdf[cols].fillna(0))
     clusterdf['hdb'] = pd.Series(hdb.labels_+1, index=clusterdf.index)
-    plot = clusterer.condensed_tree_.plot(select_clusters=True)
+    #plot = clusterer.condensed_tree_.plot(select_clusters=True)
 
-    print(clusterdf['hdb'].value_counts())
+    #print(clusterdf['hdb'].value_counts())
     print(clusterdf.groupby('hdb')[unitscol].count().idxmax(axis=1))
     print(clusterdf.groupby('hdb')[traitscol].mean().idxmax(axis=1))
-    print(clusterdf.groupby('hdb')['participants.placement'].mean())
+    #print(clusterdf.groupby('hdb')['participants.placement'].mean())
 
     #Merge items with HDB
     itemshdb=items.merge(clusterdf)[list(items.columns)+list(['hdb'])]
@@ -135,7 +135,7 @@ def main():
     trashfolder()
 
     for variation in combinepivot['game_variation'].unique():
-        #print(variation)
+        print(variation)
         variationdf = combinepivot.loc[combinepivot['game_variation']==variation]
         hdbdfvariation=tfthdb(variationdf, variation, unitscol, traitscol, items)
         variationname = variation[variation.rindex('_')+1:]
@@ -157,6 +157,8 @@ def main():
     #update static values
     wks=sh.worksheet_by_title('Notes')
     wks.update_value((1, 1), str(datetime.fromtimestamp(df['game_datetime'].max()/1e3)))
+    outputtodrive(pd.DataFrame(data={'last_datetime': [df['game_datetime'].max()]}),'last_datetime')
+    outputtodrive(pd.DataFrame(df['game_variation'].value_counts()),'gamevariationcounts')
 
 if __name__ == "__main__":
     # execute only if run as a script
