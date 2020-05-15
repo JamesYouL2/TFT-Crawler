@@ -149,6 +149,7 @@ def main():
         #Update worksheets
         wksheet.clear()
         wksheet.set_dataframe(hdbdfvariation.sort_index(),(1,1))
+        hdbdfvariation.to_json()
     
     #update static values
     wks=sh.worksheet_by_title('Notes')
