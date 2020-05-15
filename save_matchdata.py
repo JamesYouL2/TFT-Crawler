@@ -158,7 +158,6 @@ def main():
     wks=sh.worksheet_by_title('Notes')
     wks.update_value((1, 1), str(datetime.fromtimestamp(df['game_datetime'].max()/1e3)))
 
-
 if __name__ == "__main__":
     # execute only if run as a script
     start=time.time()

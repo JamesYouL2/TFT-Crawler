@@ -10,7 +10,7 @@ def outputtodrive(df, variation):
     gfile = drive.CreateFile({'title': variation + '.csv', 'mimeType':'text/csv',
             "parents": [{"kind": "drive#fileLink","id": '18XgAoGNszXgbYFYwGyfbZgB23LwceleV'}]})
 
-    gfile.SetContentString(df.tocsv())
+    gfile.SetContentString(df.to_csv())
     gfile.Upload()
 
 #Trash all files in folder
