@@ -80,7 +80,7 @@ def tfthdb(clusterdf, name, unitscol, traitscol, items):
             hdbdf.loc[-2] = ['Count',len(clusterdf[clusterdf['hdb']==i])]
             hdbdf.loc[-1] = ['Placement',round(clusterdf[clusterdf['hdb']==i]['participants.placement'].mean(),2)]
             hdbdf.columns=[str(i)+'_character',str(i)+'_pct']
-            rawitemdf['character']=rawitemdf['participants.units.character_id']+rawitemdf['name']
+            rawitemdf['character']=rawitemdf['participants.units.character_id']+'_'+rawitemdf['name']
             itemdf=rawitemdf[['character','count']]
             itemdf['count']= (100* itemdf['count']/ (clusterdf['hdb']==i).sum()).round()
             itemdf.columns = hdbdf.columns
@@ -92,7 +92,7 @@ def tfthdb(clusterdf, name, unitscol, traitscol, items):
     
 
 def main():
-    df = loaddb(days = 2)
+    df = loaddb(days = 1)
     
     gameversion = df['game_version'].str.rsplit('.',2).str[0][len(df)-1]
 
