@@ -194,10 +194,14 @@ def insertmatchhistories(matchhistoryjson):
     df=pd.json_normalize(matchhistoryjson)
     df["region"]=df["metadata.match_id"].str.split("_",expand=True)[0]
     df["json"]=df["info.participants"].apply(psycopg2.extras.Json)
-    insertdf=df[["json","metadata.match_id","region","info.game_datetime","info.game_version","info.queue_id", "info.game_variation"]]
-    query="INSERT INTO MatchHistories (participants, match_id, region, game_datetime, game_version, queue_id, game_variation) VALUES (%s, %s, %s, %s, %s, %s, %s)"
-    psycopg2.extras.execute_batch(cursor,query,(list(map(tuple, insertdf.to_numpy()))))
-    connection.commit()
+    try:
+        insertdf=df[["json","metadata.match_id","region","info.game_datetime","info.game_version","info.queue_id", "info.game_variation"]]
+        query="INSERT INTO MatchHistories (participants, match_id, region, game_datetime, game_version, queue_id, game_variation) VALUES (%s, %s, %s, %s, %s, %s, %s)"
+        psycopg2.extras.execute_batch(cursor,query,(list(map(tuple, insertdf.to_numpy()))))
+        connection.commit()
+    except:
+        print(df["metadata.match_id"])
+        #print(Exception)
 
 async def main():
     creatematchhistorydbifnotexists()
