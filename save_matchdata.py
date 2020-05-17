@@ -92,7 +92,7 @@ def tfthdb(clusterdf, name, unitscol, traitscol, items):
     
 
 def main():
-    df = loaddb(days = 1)
+    df = loaddb(days = 2)
     
     gameversion = df['game_version'].str.rsplit('.',2).str[0][len(df)-1]
 
