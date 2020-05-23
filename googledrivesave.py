@@ -8,7 +8,7 @@ def outputtodrive(df, variation):
     drive = GoogleDrive(gauth)
 
     gfile = drive.CreateFile({'title': variation + '.json', 'mimeType':'application/json',
-            "parents": [{"kind": "drive#fileLink","id": '18XgAoGNszXgbYFYwGyfbZgB23LwceleV'}]})
+            "parents": [{"kind": "drive#fileLink","id": '1VhfsK4QoMTZsFlcl44eIputhbVHsFb55'}]})
 
     gfile.SetContentString(df.to_json())
     gfile.Upload()
@@ -17,6 +17,6 @@ def outputtodrive(df, variation):
 def trashfolder():
     gauth = GoogleAuth()
     drive = GoogleDrive(gauth)
-    file_list = drive.ListFile({'q': "'18XgAoGNszXgbYFYwGyfbZgB23LwceleV' in parents and trashed=false"}).GetList()
+    file_list = drive.ListFile({'q': "'1VhfsK4QoMTZsFlcl44eIputhbVHsFb55' in parents and trashed=false"}).GetList()
     for file1 in file_list:
-        file1.Trash()
+        file1.Delete()
