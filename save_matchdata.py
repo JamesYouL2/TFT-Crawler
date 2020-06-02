@@ -80,7 +80,7 @@ def tfthdb(clusterdf, name, unitscol, traitscol, items):
             hdbdf= (100* rawhdbdf / (clusterdf['hdb']==i).sum()).round().head(15).rename(columns={0:"percent"})
             #combine unit percent and unit stars
             hdbdf = hdbdf.merge(starsdf, left_index=True, right_index=True).reset_index()
-            hdbdf.columns=['cluster_'+str(i),'cluster_'+str(i)+'pct', 'cluster_'+str(i)+'stars']
+            hdbdf.columns=[str(i)+'_character',str(i)+'_pct', str(i)+'_stars']
 
             hdbdf.loc[-2] = ['Count',len(clusterdf[clusterdf['hdb']==i]),'']
             hdbdf.loc[-1] = ['Placement',round(clusterdf[clusterdf['hdb']==i]['participants.placement'].mean(),2),'']
