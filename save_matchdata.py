@@ -73,20 +73,30 @@ def tfthdb(clusterdf, name, unitscol, traitscol, items):
     for i in clusterdf.groupby('hdb')['participants.placement'].mean().sort_values().index:
         if (i != 0):
             rawhdbdf=pd.DataFrame(clusterdf[unitscol][clusterdf['hdb']==i].count().sort_values(ascending=False))
+            starsdf=pd.DataFrame(clusterdf[unitscol][clusterdf['hdb']==i].mean().round(2).sort_values(ascending=False)).rename(columns={0:"stars"})
             #get 15 most popular items per unit
             rawitemdf=itemshdb[itemshdb['hdb']==i].groupby(['name','participants.units.character_id']).count()['count'].sort_values(ascending=False).head(25).reset_index()
             #get 15 most popular units
-            hdbdf= (100* rawhdbdf / (clusterdf['hdb']==i).sum()).round().head(15).reset_index()
-            hdbdf.loc[-2] = ['Count',len(clusterdf[clusterdf['hdb']==i])]
-            hdbdf.loc[-1] = ['Placement',round(clusterdf[clusterdf['hdb']==i]['participants.placement'].mean(),2)]
-            hdbdf.columns=[str(i)+'_character',str(i)+'_pct']
+            hdbdf= (100* rawhdbdf / (clusterdf['hdb']==i).sum()).round().head(15).rename(columns={0:"percent"})
+            #combine unit percent and unit stars
+            hdbdf = hdbdf.merge(starsdf, left_index=True, right_index=True).reset_index()
+            hdbdf.columns=['cluster_'+str(i),'pct', 'stars']
+
+            hdbdf.loc[-2] = ['Count',len(clusterdf[clusterdf['hdb']==i]),'']
+            hdbdf.loc[-1] = ['Placement',round(clusterdf[clusterdf['hdb']==i]['participants.placement'].mean(),2),'']
+            
             rawitemdf['character']=rawitemdf['participants.units.character_id']+'_'+rawitemdf['name']
             itemdf=rawitemdf[['character','count']]
             itemdf['count']= (100* itemdf['count']/ (clusterdf['hdb']==i).sum()).round()
+            #need an empty column in items that will go under unit stars
+            #not sure of best way,see: https://stackoverflow.com/questions/16327055/how-to-add-an-empty-column-to-a-dataframe
+            itemdf['empty'] = np.nan
             itemdf.columns = hdbdf.columns
             itemdf.index=itemdf.index+100
             hdbitemdf = pd.concat([hdbdf,itemdf])
             allhdbdf = pd.concat([allhdbdf,hdbitemdf],axis=1)
+            #empty string looks nicer in spreadsheet than nan
+            allhdbdf = allhdbdf.fillna('')
 
     return allhdbdf
     
