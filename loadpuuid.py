@@ -48,9 +48,13 @@ async def getchallengerladder(panth):
     while type(data) == type:
         try:
             data = await panth.getTFTChallengerLeague()
-            ladder=pd.DataFrame(pd.json_normalize(data['entries'])[['summonerId','summonerName']])
-            ladder['region']=panth._server
-            return ladder
+            if len(data['entries']) > 0:
+                ladder=pd.DataFrame(pd.json_normalize(data['entries'])[['summonerId','summonerName']])
+                ladder['region']=panth._server
+                return ladder
+            else:
+                ladder = pd.DataFrame(columns=['summonerId','summonerName','region'])
+                return ladder
         except pantheon.exc.RateLimit as e:
             print(e, panth._server)
             await asyncio.sleep(random.uniform(0,240))       
