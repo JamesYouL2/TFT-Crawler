@@ -134,7 +134,8 @@ async def getmatchhistorylistfromapi(panth):
     alllists = list()
     #start off randomly to not hit rate limit right away
     await asyncio.sleep(random.uniform(0,240))
-    #split api calls into groups of 20
+    i = 0
+    #split api calls into one at a time in case of breaking
     for i in range(len(puuidlist)):
         puuids = puuidlist[i : i + 1]
         #print ("startmatchlist" + str(i) + panth._server)
