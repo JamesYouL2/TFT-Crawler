@@ -4,7 +4,7 @@ import os
 import psycopg2
 import psycopg2.extras
 from datetime import datetime, timedelta
-from loadpuuid import getchallengerladder, grabpuiiddb
+from loadpuuid import getchallengerladder, grabpuiiddb, getmasterplus
 import numpy as np
 from pantheon import pantheon
 import asyncio
@@ -120,7 +120,7 @@ async def apigetmatch(matchhistoryids,panth):
 async def getpuuidtorun(panth):
     #print('start'+panth._server)
     asyncio.set_event_loop(asyncio.new_event_loop())
-    challenger = asyncio.run(getchallengerladder(panth))
+    challenger = asyncio.run(getmasterplus(panth))
     #get puuidb first to see if async doesn't work
     puuiddb = await grabpuiiddb()
     ladder = puuiddb.merge(challenger,left_on=["summonerid","region"],right_on=["summonerId","region"])
