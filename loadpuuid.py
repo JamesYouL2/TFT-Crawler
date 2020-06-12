@@ -24,7 +24,6 @@ key.read('keys.ini')
 #create loop
 loop = asyncio.get_event_loop()
 
-
 #for debugging
 region = "na1"
 panth = pantheon.Pantheon(region, key.get('setup', 'api_key'), errorHandling=True, debug=True)
@@ -61,6 +60,42 @@ async def getchallengerladder(panth):
         except Exception as e:
             raise e
 
+async def getmasterladder(panth):
+    data = pantheon.exc.RateLimit
+    while type(data) == type:
+        try:
+            data = await panth.getTFTMasterLeague()
+            if len(data['entries']) > 0:
+                ladder=pd.DataFrame(pd.json_normalize(data['entries'])[['summonerId','summonerName']])
+                ladder['region']=panth._server
+                return ladder
+            else:
+                ladder = pd.DataFrame(columns=['summonerId','summonerName','region'])
+                return ladder
+        except pantheon.exc.RateLimit as e:
+            print(e, panth._server)
+            await asyncio.sleep(random.uniform(0,240))       
+        except Exception as e:
+            raise e
+
+async def getgrandmasterladder(panth):
+    data = pantheon.exc.RateLimit
+    while type(data) == type:
+        try:
+            data = await panth.getTFTGrandmasterLeague()
+            if len(data['entries']) > 0:
+                ladder=pd.DataFrame(pd.json_normalize(data['entries'])[['summonerId','summonerName']])
+                ladder['region']=panth._server
+                return ladder
+            else:
+                ladder = pd.DataFrame(columns=['summonerId','summonerName','region'])
+                return ladder
+        except pantheon.exc.RateLimit as e:
+            print(e, panth._server)
+            await asyncio.sleep(random.uniform(0,240))       
+        except Exception as e:
+            raise e
+
 #Create db if does not yet exist
 def createdbifnotexists():
     #cursor.execute("""DROP TABLE IF EXISTS LadderPuuid""")
@@ -82,10 +117,16 @@ async def grabpuiiddb():
     df=pd.read_sql(sql, con=connection)
     return df
 
+async def getmasterplus(panth):
+    challenger = await getchallengerladder(panth)
+    grandmaster = await getgrandmasterladder(panth)
+    master = await getmasterladder(panth)
+    return pd.concat([challenger, grandmaster, master])
+
 #get all names without puuid
 async def getnameswithoutpuuid(panth):
     puuid = await grabpuiiddb()
-    ladder = await getchallengerladder(panth)
+    ladder = await getmasterplus(panth)
     print(panth._server)
     summonernames = ladder[ladder.merge(puuid,left_on=['summonerId','region'], right_on=['summonerid','region'], how='left')['puuid'].isnull()]
     return summonernames
