@@ -85,7 +85,10 @@ def tfthdb(clusterdf, name, unitscol, traitscol, items):
 
             hdbdf.loc[-2] = ['Count',len(clusterdf[clusterdf['hdb']==i]),'']
             hdbdf.loc[-1] = ['Placement',round(clusterdf[clusterdf['hdb']==i]['participants.placement'].mean(),2),'']
-            
+            hdbdf.loc[-3] = ['PickPct', round(100*len(clusterdf[clusterdf['hdb']==i]) / len(clusterdf),2),'']
+            hdbdf.loc[-4] = ['Top4Rate',round(100*len(clusterdf[(clusterdf['participants.placement']<4.5) & (clusterdf['hdb']==i)]) / len(clusterdf[clusterdf['hdb']==i]),2),'']
+            hdbdf.loc[-5] = ['WinRate',round(100*len(clusterdf[(clusterdf['participants.placement']==1) & (clusterdf['hdb']==i)]) / len(clusterdf[clusterdf['hdb']==i]),2),'']
+
             rawitemdf['character']=rawitemdf['participants.units.character_id']+'_'+rawitemdf['name']
             itemdf=rawitemdf[['character','count']]
             itemdf['count']= (100* itemdf['count']/ (clusterdf['hdb']==i).sum()).round()
@@ -144,6 +147,8 @@ def main():
     assert combinepivot['game_variation'].value_counts().min() >= 100, "less than 100 records for variation"
 
     trashfolder()
+
+    #variation = combinepivot.groupby('game_variation').count()['match_id'].idxmax()
 
     for variation in combinepivot['game_variation'].unique():
         print(variation)
