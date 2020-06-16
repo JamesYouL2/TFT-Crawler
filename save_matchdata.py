@@ -31,8 +31,9 @@ connection = psycopg2.connect(
     )
 
 #Get all json in array
-def loaddb(days):
-    timestamp=(datetime.now() - timedelta(days=days)).timestamp()*1000
+def loaddb(days = 2, timestamp = None):
+    if timestamp is None:
+        timestamp=(datetime.now() - timedelta(days=days)).timestamp()*1000
     cursor=connection.cursor()
     sql = """
     SELECT *
