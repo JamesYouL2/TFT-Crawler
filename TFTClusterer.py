@@ -58,6 +58,6 @@ class TFTClusterer:
         self.unitshdb=self.unitsdf.merge(self.clusterdf)[list(self.unitsdf.columns)+list(['hdb'])]
         self.itemshdb=self.itemsdf.merge(self.clusterdf)[list(self.itemsdf.columns)+list(['hdb'])]
 
-        self.traitshdb['comp_id'] = str(self.traitshdb['participants.placement'])+self.traitshdb['match_id']
-        self.unitshdb['comp_id'] = str(self.unitshdb['participants.placement'])+self.unitshdb['match_id']
-        self.itemshdb['comp_id'] = str(self.itemshdb['participants.placement'])+self.itemshdb['match_id']
+        self.traitshdb['comp_id'] = self.traitshdb['participants.placement'].apply(str)+self.traitshdb['match_id']
+        self.unitshdb['comp_id'] = self.unitshdb['participants.placement'].apply(str)+self.unitshdb['match_id']
+        self.itemshdb['comp_id'] = self.itemshdb['participants.placement'].apply(str)+self.itemshdb['match_id']
