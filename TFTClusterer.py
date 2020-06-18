@@ -51,8 +51,14 @@ class TFTClusterer:
         #Cluster HDB
         print('HDB Scan')
         clusterer=hdb.fit(self.clusterdf[cols].fillna(0))
-        self.clusterdf['hdb'] = pd.Series(hdb.labels_+1, index=self.clusterdf.index)
-        #plot = clusterer.condensed_tree_.plot(select_clusters=True)
+        self.clusterdf['hdbnumber'] = pd.Series(hdb.labels_+1, index=self.clusterdf.index)
+
+        #Get top 2 traits
+        commontraitsdf=self.clusterdf.groupby('hdbnumber')[self.traitscol].mean()
+        commontraitslist=commontraitsdf.apply(lambda s: s.abs().nlargest(2).index.to_list(), axis=1)
+        commontraits=commontraitslist.agg(lambda x: ' '.join(map(str, x)))
+
+        self.clusterdf['hdb']=self.clusterdf.merge(pd.DataFrame(commontraits),on='hdbnumber')[0]
 
         self.traitshdb=self.traitsdf.merge(self.clusterdf)[list(self.traitsdf.columns)+list(['hdb'])]
         self.unitshdb=self.unitsdf.merge(self.clusterdf)[list(self.unitsdf.columns)+list(['hdb'])]
