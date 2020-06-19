@@ -52,6 +52,7 @@ class TFTClusterer:
         print('HDB Scan')
         clusterer=hdb.fit(self.clusterdf[cols].fillna(0))
         self.plot = clusterer.condensed_tree_.plot(select_clusters=True)
+        self.plot.figure
         self.clusterdf['hdbnumber'] = pd.Series(hdb.labels_+1, index=self.clusterdf.index)
 
         #Get top 2 traits
