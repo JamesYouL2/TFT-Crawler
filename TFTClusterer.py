@@ -38,10 +38,10 @@ class TFTClusterer:
         self.traitscol=list(traitspivot.columns)
         self.itemscol=list(items.columns)
 
-    def cluster(self):
+    def cluster(self, divisor = 40):
         #HDB Scan
         hdb = hdbscan.HDBSCAN(min_cluster_size=
-        int(np.floor(len(self.clusterdf) / 30)), 
+        int(np.floor(len(self.clusterdf) / divisor)), 
         min_samples=1,
         cluster_selection_method='eom')
 
@@ -51,11 +51,11 @@ class TFTClusterer:
         #Cluster HDB
         print('HDB Scan')
         clusterer=hdb.fit(self.clusterdf[cols].fillna(0))
-        plot = clusterer.condensed_tree_.plot(select_clusters=True)
+        self.plot = clusterer.condensed_tree_.plot(select_clusters=True)
         self.clusterdf['hdbnumber'] = pd.Series(hdb.labels_+1, index=self.clusterdf.index)
 
         #Get top 2 traits
-        commontraitsdf=self.clusterdf.groupby('hdbnumber')[self.traitscol].mean()
+        commontraitsdf=self.clusterdf.fillna(0).groupby('hdbnumber')[self.traitscol].mean()
         commontraitslist=commontraitsdf.apply(lambda s: s.abs().nlargest(2).index.to_list(), axis=1)
         self.commontraits=commontraitslist.agg(lambda x: ' '.join(map(str, x)))
         self.commontraits[0]='No Comp'
