@@ -35,13 +35,15 @@ class TFTClusterer:
         traitspivot=pd.pivot_table(traits,index=['match_id','participants.placement', 'game_variation'], columns='name',values='num_units')
         #itemspivot=pd.pivot_table(items,index=['match_id','participants.placement', 'game_variation'], columns=['participants.units.character_id'],values='count',aggfunc=np.sum)
 
+        self.traitslabel=pd.pivot_table(traits,index=['match_id','participants.placement', 'game_variation'], columns='name',values='num_units').reset_index()
+
         self.clusterdf = unitspivot.join(traitspivot).reset_index()
 
         self.unitscol=list(unitspivot.columns)
         self.traitscol=list(traitspivot.columns)
         self.itemscol=list(items.columns)
 
-    def cluster(self, divisor = 30):
+    def cluster(self, divisor = 35):
         #HDB Scan
         hdb = hdbscan.HDBSCAN(min_cluster_size=
         int(np.floor(len(self.clusterdf) / divisor)), 
@@ -57,15 +59,22 @@ class TFTClusterer:
         self.plot = clusterer.condensed_tree_.plot(select_clusters=True)
         self.plot.figure
         self.clusterdf['hdbnumber'] = pd.Series(hdb.labels_+1, index=self.clusterdf.index)
+        self.clusterdf['comp_id'] = self.clusterdf['participants.placement'].apply(str)+self.clusterdf['match_id']
+        
+        print(self.clusterdf['hdbnumber'].value_counts())
 
         #Get top 2 traits
-        commontraitsdf=self.clusterdf.fillna(0).groupby('hdbnumber')[self.traitscol].mean()
-        commontraitslist=commontraitsdf.apply(lambda s: s.abs().nlargest(2).index.to_list(), axis=1)
+        commontraitscol = list(self.traitslabel.columns)
+        commontraitscol.remove('participants.placement')
+        traitsbyunit = self.traitslabel.merge(self.clusterdf[['match_id','participants.placement','hdbnumber','comp_id']],on=['match_id','participants.placement'])[list(commontraitscol)+list(['hdbnumber'])+list(['comp_id'])]
+        self.traitsbyunit = traitsbyunit
+
+        traitsaveragedf = traitsbyunit.fillna(0).groupby('hdbnumber')[list(commontraitscol)].mean()
+        commontraitslist=traitsaveragedf.apply(lambda s: s.abs().nlargest(2).index.to_list(), axis=1)
         self.commontraits=commontraitslist.agg(lambda x: ' '.join(map(str, x)))
         self.commontraits[0]='No Comp'
 
-        self.clusterdf=self.clusterdf.merge(pd.DataFrame({'hdb':self.commontraits}),left_on='hdbnumber',right_on='hdbnumber')
-        self.clusterdf['comp_id'] = self.clusterdf['participants.placement'].apply(str)+self.clusterdf['match_id']
+        self.clusterdf=self.clusterdf.merge(pd.DataFrame({'hdb':self.commontraits}),left_on='hdbnumber',right_on='hdbnumber')        
 
         self.traitshdb=self.traitsdf.merge(self.clusterdf)[list(self.traitsdf.columns)+list(['hdb'])+list(['comp_id'])]
         self.unitshdb=self.unitsdf.merge(self.clusterdf)[list(self.unitsdf.columns)+list(['hdb'])+list(['comp_id'])]
