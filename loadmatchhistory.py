@@ -151,7 +151,7 @@ async def getmatchhistorylistfromapi(panth):
 async def maxmatchhistorylessthandate(days,panth):
     timestamp=(datetime.now() - timedelta(days=days)).timestamp()*1000
     sql = """
-    SELECT cast(max(substring(match_id,strpos(match_id,'_')+1,100)) as BIGINT)
+    SELECT max(cast(substring(match_id,strpos(match_id,'_')+1,100) as BIGINT))
     FROM MatchHistories
     where game_datetime < %(date)s and region = %(region)s
     """
