@@ -121,6 +121,7 @@ async def getpuuidtorun(panth):
     #print('start'+panth._server)
     asyncio.set_event_loop(asyncio.new_event_loop())
     challenger = asyncio.run(getmasterplus(panth))
+    #print(panth._server,len(challenger))
     #get puuidb first to see if async doesn't work
     puuiddb = await grabpuiiddb()
     ladder = puuiddb.merge(challenger,left_on=["summonerid","region"],right_on=["summonerId","region"])
