@@ -35,8 +35,6 @@ class TFTClusterer:
         traitspivot=pd.pivot_table(traits,index=['match_id','participants.placement', 'game_variation'], columns='name',values='num_units')
         #itemspivot=pd.pivot_table(items,index=['match_id','participants.placement', 'game_variation'], columns=['participants.units.character_id'],values='count',aggfunc=np.sum)
 
-        self.traitslabel=pd.pivot_table(traits,index=['match_id','participants.placement', 'game_variation'], columns='name',values='num_units').reset_index()
-
         self.clusterdf = unitspivot.join(traitspivot).reset_index()
 
         self.unitscol=list(unitspivot.columns)
@@ -64,12 +62,7 @@ class TFTClusterer:
         print(self.clusterdf['hdbnumber'].value_counts())
 
         #Get top 2 traits
-        commontraitscol = list(self.traitslabel.columns)
-        commontraitscol.remove('participants.placement')
-        traitsbyunit = self.traitslabel.merge(self.clusterdf[['match_id','participants.placement','hdbnumber','comp_id']],on=['match_id','participants.placement'])[list(commontraitscol)+list(['hdbnumber'])+list(['comp_id'])]
-        self.traitsbyunit = traitsbyunit
-
-        traitsaveragedf = traitsbyunit.fillna(0).groupby('hdbnumber')[list(commontraitscol)].mean()
+        traitsaveragedf = self.clusterdf.fillna(0).groupby('hdbnumber')[list(self.traitscol)].mean()
         commontraitslist=traitsaveragedf.apply(lambda s: s.abs().nlargest(2).index.to_list(), axis=1)
         self.commontraits=commontraitslist.agg(lambda x: ' '.join(map(str, x)))
         self.commontraits[0]='No Comp'
