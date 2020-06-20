@@ -25,7 +25,7 @@ key.read('keys.ini')
 loop = asyncio.get_event_loop()
 
 #for debugging
-region = "na1"
+region = "kr"
 panth = pantheon.Pantheon(region, key.get('setup', 'api_key'), errorHandling=True, debug=True)
 
 #connect to postgres database
@@ -127,9 +127,10 @@ async def getmasterplus(panth):
 async def getnameswithoutpuuid(panth):
     puuid = await grabpuiiddb()
     ladder = await getmasterplus(panth)
-    print(panth._server)
-    summonernames = ladder[ladder.merge(puuid,left_on=['summonerId','region'], right_on=['summonerid','region'], how='left')['puuid'].isnull()]
-    return summonernames
+    merged = ladder.merge(puuid,left_on=['summonerId','region'], right_on=['summonerid','region'],how='left')
+    summonerids = merged[merged['puuid'].isnull()]['summonerId'].unique()
+    print(panth._server+'SummonerIds:'+str(len(summonerids)))
+    return summonerids
 
 #call riot puuid
 async def apipuuid(summonerid,panth):
@@ -150,8 +151,7 @@ async def apipuuid(summonerid,panth):
 
 #wrapper to call api for summonerids to get puuids for and then insert
 async def insertpuuid(panth):
-    summonernames =  await getnameswithoutpuuid(panth)
-    summonerids = summonernames['summonerId']
+    summonerids =  await getnameswithoutpuuid(panth)
     if len(summonerids)>0:
         for summonerid in summonerids:
             allpuuid = await apipuuid(summonerid,panth)
