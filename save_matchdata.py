@@ -1,185 +1,37 @@
-import pandas as pd 
+# To add a new cell, type ''
+# To add a new markdown cell, type ' [markdown]'
 import json
-from datetime import datetime, timedelta
-import configparser
-import json
-import os
-import requests
-import numpy as np
+import pandas as pd
 import hdbscan
-from dateutil import parser
-import csv
-import psycopg2
-import time
-import pygsheets
+import numpy as np
+from TFTClusterer import TFTClusterer
+from save_matchdata import loaddb
+from datetime import datetime, timedelta
 from googledrivesave import trashfolder, outputtodrive
-
-config = configparser.ConfigParser()
-config.read('config.ini')
-regions = config.get('adjustable', 'regions').split(',')
-
-key = configparser.ConfigParser()
-key.read('keys.ini')
-
-#connect to postgres database
-connection = psycopg2.connect(
-    host = key.get('database', 'host'),
-    port = 5432,
-    user = key.get('database', 'user'),
-    password = key.get('database', 'password'),
-    database = key.get('database', 'database')
-    )
-
-#Get all json in array
-def loaddb(days = 2, timestamp = None):
-    if timestamp is None:
-        timestamp=(datetime.now() - timedelta(days=days)).timestamp()*1000
-    cursor=connection.cursor()
-    sql = """
-    SELECT *
-    FROM MatchHistories where game_datetime > %(date)s
-    """
-    df=pd.read_sql(sql, con=connection, 
-    params={"date":timestamp})
-    return df
-
-#Clusters a dataframe and outputs data to markdown format
-def tfthdb(clusterdf, name, unitscol, traitscol, items):
-    #HDB Scan
-    hdb = hdbscan.HDBSCAN(min_cluster_size=
-    int(np.floor(len(clusterdf)/20)), 
-    min_samples=1,
-    cluster_selection_method='eom')
-
-    cols = unitscol + traitscol
-
-    #print(cols)
-    #Cluster HDB
-    print('HDB Scan')
-    clusterer=hdb.fit(clusterdf[cols].fillna(0))
-    clusterdf['hdb'] = pd.Series(hdb.labels_+1, index=clusterdf.index)
-    #plot = clusterer.condensed_tree_.plot(select_clusters=True)
-
-    #print(clusterdf['hdb'].value_counts())
-    print(clusterdf.groupby('hdb')[unitscol].count().idxmax(axis=1))
-    print(clusterdf.groupby('hdb')[traitscol].mean().idxmax(axis=1))
-    #print(clusterdf.groupby('hdb')['participants.placement'].mean())
-
-    #Merge items with HDB
-    itemshdb=items.merge(clusterdf)[list(items.columns)+list(['hdb'])]
-
-    allhdbdf = pd.DataFrame()
-
-    #Create spreadsheet for MarkDown
-    for i in clusterdf.groupby('hdb')['participants.placement'].mean().sort_values().index:
-        if (i != 0):
-            rawhdbdf=pd.DataFrame(clusterdf[unitscol][clusterdf['hdb']==i].count().sort_values(ascending=False))
-            starsdf=pd.DataFrame(clusterdf[unitscol][clusterdf['hdb']==i].mean().round(2).sort_values(ascending=False)).rename(columns={0:"stars"})
-            #get 15 most popular items per unit
-            rawitemdf=itemshdb[itemshdb['hdb']==i].groupby(['name','participants.units.character_id']).count()['count'].sort_values(ascending=False).head(25).reset_index()
-            #get 15 most popular units
-            hdbdf= (100* rawhdbdf / (clusterdf['hdb']==i).sum()).round().head(15).rename(columns={0:"percent"})
-            #combine unit percent and unit stars
-            hdbdf = hdbdf.merge(starsdf, left_index=True, right_index=True).reset_index()
-            hdbdf.columns=[str(i)+'_character',str(i)+'_pct', str(i)+'_stars']
-
-            hdbdf.loc[-2] = ['Count',len(clusterdf[clusterdf['hdb']==i]),'']
-            hdbdf.loc[-1] = ['Placement',round(clusterdf[clusterdf['hdb']==i]['participants.placement'].mean(),2),'']
-            hdbdf.loc[-3] = ['PickPct', round(100*len(clusterdf[clusterdf['hdb']==i]) / len(clusterdf),2),'']
-            hdbdf.loc[-4] = ['Top4Rate',round(100*len(clusterdf[(clusterdf['participants.placement']<4.5) & (clusterdf['hdb']==i)]) / len(clusterdf[clusterdf['hdb']==i]),2),'']
-            hdbdf.loc[-5] = ['WinRate',round(100*len(clusterdf[(clusterdf['participants.placement']==1) & (clusterdf['hdb']==i)]) / len(clusterdf[clusterdf['hdb']==i]),2),'']
-
-            rawitemdf['character']=rawitemdf['participants.units.character_id']+'_'+rawitemdf['name']
-            itemdf=rawitemdf[['character','count']]
-            itemdf['count']= (100* itemdf['count']/ (clusterdf['hdb']==i).sum()).round()
-            #need an empty column in items that will go under unit stars
-            #not sure of best way,see: https://stackoverflow.com/questions/16327055/how-to-add-an-empty-column-to-a-dataframe
-            itemdf['empty'] = ''
-            itemdf.columns = hdbdf.columns
-            itemdf.index=itemdf.index+100
-            hdbitemdf = pd.concat([hdbdf,itemdf])
-            allhdbdf = pd.concat([allhdbdf,hdbitemdf],axis=1)
-            #empty string looks nicer in spreadsheet than nan
-            allhdbdf = allhdbdf.fillna('')
-
-    return allhdbdf
-    
+import pygsheets
 
 def main():
-    df = loaddb(days = 2)
-    
+    df = loaddb(timestamp=(datetime.now() - timedelta(hours=4)).timestamp()*1000)
     gameversion = df['game_version'].max()
 
     df=df.loc[df['game_version']==gameversion]
 
     assert len(df) >= 100, "less than 100 matches in newest patch"
 
-    allrecords = df.to_json(orient='records')
+    clusterclass=TFTClusterer(df)
 
-    traits = pd.json_normalize(json.loads(allrecords), 
-    record_path=['participants','traits'],
-    meta=['match_id','game_variation',['participants','placement'],['participants','puuid']])
+    clusterclass.cluster(divisor=25)
+
+    clusterclass.unitshdb.to_csv("unitshdb.csv",index=False)
+    clusterclass.itemshdb.to_csv("itemshdb.csv",index=False)
+    clusterclass.clusterdf[["comp_id","participants.placement","hdb","game_variation"]].to_csv("hdb.csv",index=False)
     
-    units = pd.json_normalize(json.loads(allrecords), 
-    record_path=['participants','units'],
-    meta=['match_id','game_variation',['participants','placement'],['participants','puuid']])
+    allhdbdf = clusterclass.allhdbdf()
 
-    items = pd.json_normalize(json.loads(allrecords),
-    record_path=['participants','units', 'items'],
-    meta=['match_id','game_variation',['participants','placement'],['participants','puuid'],['participants','units','character_id']])
+    variationname = 'AllGalaxies'
 
-    items.rename(columns={0: "item"},inplace=True)
-    items['count']=1
-    #items=items.loc[items['item']>10]
-    items=items.merge(pd.read_json('items.json'),left_on='item',right_on='id')
+    outputtodrive(allhdbdf.sort_index(),variationname)
+    str(datetime.fromtimestamp(df['game_datetime'].max()/1e3))
 
-    #Pivot and combine spreadsheets
-    unitspivot=pd.pivot_table(units,index=['match_id','participants.placement', 'game_variation'], columns='character_id',values='tier')
-    traitspivot=pd.pivot_table(traits,index=['match_id','participants.placement', 'game_variation'], columns='name',values='tier_current')
-    #itemspivot=pd.pivot_table(items,index=['match_id','participants.placement', 'game_variation'], columns=['participants.units.character_id'],values='count',aggfunc=np.sum)
-
-    combinepivot = unitspivot.join(traitspivot).reset_index()
-
-    unitscol=list(unitspivot.columns)
-    traitscol=list(traitspivot.columns)
-    itemscol=list(items.columns)
-
-    assert combinepivot['game_variation'].value_counts().min() >= 100, "less than 100 records for variation"
-
-    trashfolder()
-
-    #variation = combinepivot.groupby('game_variation').count()['match_id'].idxmax()
-
-    for variation in combinepivot['game_variation'].unique():
-        print(variation)
-        variationdf = combinepivot.loc[combinepivot['game_variation']==variation]
-        hdbdfvariation=tfthdb(variationdf, variation, unitscol, traitscol, items)
-        variationname = variation[variation.rindex('_')+1:]
-        
-        gc = pygsheets.authorize(service_file='./googlesheet.json')
-        sh = gc.open('TFTSheets')
-        #check googlesheets
-        try:
-            wksheet=sh.worksheet_by_title(variationname)
-        except:
-            sh.add_worksheet(variationname)
-            wksheet=sh.worksheet_by_title(variationname)
-            
-        #Update worksheets
-        wksheet.clear()
-        wksheet.set_dataframe(hdbdfvariation.sort_index(),(1,1))
-        outputtodrive(hdbdfvariation.sort_index(),variation)
-    
-    #update static values
-    wks=sh.worksheet_by_title('Notes')
-    wks.update_value((1, 1), str(datetime.fromtimestamp(df['game_datetime'].max()/1e3)))
-    wks.update_value((2, 1), gameversion)
     outputtodrive(pd.DataFrame(data={'last_datetime': [df['game_datetime'].max()]}),'last_datetime')
     outputtodrive(pd.DataFrame(df['game_variation'].value_counts()),'gamevariationcounts')
-
-if __name__ == "__main__":
-    # execute only if run as a script
-    start=time.time()
-    print("hdbscan")
-    main()
-    print((time.time()-start)/60)
