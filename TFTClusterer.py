@@ -41,7 +41,7 @@ class TFTClusterer:
         self.traitscol=list(traitspivot.columns)
         self.itemscol=list(items.columns)
 
-    def cluster(self, divisor = 35):
+    def cluster(self, divisor = 25):
         #HDB Scan
         hdb = hdbscan.HDBSCAN(min_cluster_size=
         int(np.floor(len(self.clusterdf) / divisor)), 
@@ -54,12 +54,12 @@ class TFTClusterer:
         #Cluster HDB
         print('HDB Scan')
         clusterer=hdb.fit(self.clusterdf[cols].fillna(0))
-        self.plot = clusterer.condensed_tree_.plot(select_clusters=True)
-        self.plot.figure
+        self.plot = clusterer.condensed_tree_.plot(select_clusters=True, label_clusters=True)
+        
         self.clusterdf['hdbnumber'] = pd.Series(hdb.labels_+1, index=self.clusterdf.index)
         self.clusterdf['comp_id'] = self.clusterdf['participants.placement'].apply(str)+self.clusterdf['match_id']
         
-        print(self.clusterdf['hdbnumber'].value_counts())
+        #print(self.clusterdf['hdbnumber'].value_counts())
 
         #Get top 2 traits
         traitsaveragedf = self.clusterdf.fillna(0).groupby('hdbnumber')[list(self.traitscol)].mean()
