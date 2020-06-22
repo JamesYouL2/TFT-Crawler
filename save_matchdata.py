@@ -94,7 +94,7 @@ def tfthdb(clusterdf, name, unitscol, traitscol, items):
             itemdf['count']= (100* itemdf['count']/ (clusterdf['hdb']==i).sum()).round()
             #need an empty column in items that will go under unit stars
             #not sure of best way,see: https://stackoverflow.com/questions/16327055/how-to-add-an-empty-column-to-a-dataframe
-            itemdf['empty'] = np.nan
+            itemdf['empty'] = ''
             itemdf.columns = hdbdf.columns
             itemdf.index=itemdf.index+100
             hdbitemdf = pd.concat([hdbdf,itemdf])

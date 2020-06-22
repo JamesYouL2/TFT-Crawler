@@ -76,3 +76,44 @@ class TFTClusterer:
         self.clusterdf=self.clusterdf.merge(pd.read_json('galaxies.json'),left_on='game_variation',right_on='key',how='left')
         self.clusterdf['game_variation']=np.where(self.clusterdf['name'].notnull(),self.clusterdf['name'],self.clusterdf['game_variation'])
         self.clusterdf['game_variation']=np.where(self.clusterdf['game_variation']=='TFT3_GameVariation_LittlerLegends','Littler Legends',self.clusterdf['game_variation'])
+
+    def allhdbdf(self):
+        clusterdf = self.clusterdf
+        unitscol = self.unitscol
+        itemshdb = self.itemshdb
+
+        allhdbdf=pd.DataFrame()
+
+        for i in clusterdf.groupby('hdb')['participants.placement'].mean().sort_values().index:
+            if (i != 0):
+                rawhdbdf=pd.DataFrame(clusterdf[unitscol][clusterdf['hdb']==i].count().sort_values(ascending=False))
+                starsdf=pd.DataFrame(clusterdf[unitscol][clusterdf['hdb']==i].mean().round(2).sort_values(ascending=False)).rename(columns={0:"stars"})
+                #get 15 most popular items per unit
+                rawitemdf=itemshdb[itemshdb['hdb']==i].groupby(['name','participants.units.character_id']).count()['count'].sort_values(ascending=False).head(25).reset_index()
+                #get 15 most popular units
+                hdbdf= (100* rawhdbdf / (clusterdf['hdb']==i).sum()).round().head(15).rename(columns={0:"percent"})
+                #combine unit percent and unit stars
+                hdbdf = hdbdf.merge(starsdf, left_index=True, right_index=True).reset_index()
+                hdbdf.columns=[str(i)+'_character',str(i)+'_pct', str(i)+'_stars']
+
+                hdbdf.loc[-2] = ['Count',len(clusterdf[clusterdf['hdb']==i]),'']
+                hdbdf.loc[-1] = ['Placement',round(clusterdf[clusterdf['hdb']==i]['participants.placement'].mean(),2),'']
+                hdbdf.loc[-3] = ['PickPct', round(100*len(clusterdf[clusterdf['hdb']==i]) / len(clusterdf),2),'']
+                hdbdf.loc[-4] = ['Top4Rate',round(100*len(clusterdf[(clusterdf['participants.placement']<4.5) & (clusterdf['hdb']==i)]) / len(clusterdf[clusterdf['hdb']==i]),2),'']
+                hdbdf.loc[-5] = ['WinRate',round(100*len(clusterdf[(clusterdf['participants.placement']==1) & (clusterdf['hdb']==i)]) / len(clusterdf[clusterdf['hdb']==i]),2),'']
+
+                rawitemdf['character']=rawitemdf['participants.units.character_id']+'_'+rawitemdf['name']
+                itemdf=rawitemdf[['character','count']]
+                itemdf['count']= (100* itemdf['count']/ (clusterdf['hdb']==i).sum()).round()
+                #need an empty column in items that will go under unit stars
+                #not sure of best way,see: https://stackoverflow.com/questions/16327055/how-to-add-an-empty-column-to-a-dataframe
+                itemdf['empty'] = ''
+                itemdf.columns = hdbdf.columns
+                itemdf.index=itemdf.index+100
+                hdbitemdf = pd.concat([hdbdf,itemdf])
+                allhdbdf = pd.concat([allhdbdf,hdbitemdf],axis=1)
+                #empty string looks nicer in spreadsheet than nan
+                allhdbdf = allhdbdf.fillna('')
+        
+        self.allhdbdf = allhdbdf
+        return allhdbdf
