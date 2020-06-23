@@ -8,10 +8,12 @@ from TFTClusterer import TFTClusterer
 from datetime import datetime, timedelta
 from googledrivesave import trashfolder, outputtodrive
 import pygsheets
+from SQLGatherer import loaddb
 
 def main():
     #Grab Data
-    df = loaddb(timestamp=(datetime.now() - timedelta(hours=24)).timestamp()*1000)
+    
+    df = loaddb(hours=24)
     gameversion = df['game_version'].max()
 
     df=df.loc[df['game_version']==gameversion]
@@ -42,3 +44,4 @@ def main():
 
     outputtodrive(pd.DataFrame(data={'last_datetime': [df['game_datetime'].max()]}),'last_datetime')
     outputtodrive(pd.DataFrame(df['game_variation'].value_counts()),'gamevariationcounts')
+
