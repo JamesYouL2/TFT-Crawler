@@ -83,9 +83,10 @@ class TFTClusterer:
         itemshdb = self.itemshdb
 
         allhdbdf=pd.DataFrame()
+        count = 1
 
         for i in clusterdf.groupby('hdb')['participants.placement'].mean().sort_values().index:
-            if (i != 0):
+            if (i != 'No Comp'):
                 rawhdbdf=pd.DataFrame(clusterdf[unitscol][clusterdf['hdb']==i].count().sort_values(ascending=False))
                 starsdf=pd.DataFrame(clusterdf[unitscol][clusterdf['hdb']==i].mean().round(2).sort_values(ascending=False)).rename(columns={0:"stars"})
                 #get 15 most popular items per unit
@@ -94,7 +95,7 @@ class TFTClusterer:
                 hdbdf= (100* rawhdbdf / (clusterdf['hdb']==i).sum()).round().head(15).rename(columns={0:"percent"})
                 #combine unit percent and unit stars
                 hdbdf = hdbdf.merge(starsdf, left_index=True, right_index=True).reset_index()
-                hdbdf.columns=[str(i)+'_character',str(i)+'_pct', str(i)+'_stars']
+                hdbdf.columns=[str(count)+'_character',str(count)+'_pct', str(count)+'_stars']
 
                 hdbdf.loc[-2] = ['Count',len(clusterdf[clusterdf['hdb']==i]),'']
                 hdbdf.loc[-1] = ['Placement',round(clusterdf[clusterdf['hdb']==i]['participants.placement'].mean(),2),'']
@@ -114,6 +115,7 @@ class TFTClusterer:
                 allhdbdf = pd.concat([allhdbdf,hdbitemdf],axis=1)
                 #empty string looks nicer in spreadsheet than nan
                 allhdbdf = allhdbdf.fillna('')
+                count = count + 1
         
         self.allhdbdf = allhdbdf
         return allhdbdf
