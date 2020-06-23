@@ -12,7 +12,6 @@ from SQLGatherer import loaddb
 
 def main():
     #Grab Data
-    
     df = loaddb(hours=24)
     gameversion = df['game_version'].max()
 
