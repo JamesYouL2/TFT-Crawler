@@ -123,9 +123,12 @@ class TFTClusterer:
 
     def imputetraits(self):
         championsjson = pd.read_json('champions.json')
-        championsjson = championsjson[['championId']].join(championsjson['traits'].explode())
+        championsjson = championsjson.explode('traits')
+        
         traitsdf=self.unitsdf.merge(championsjson,left_on='character_id',right_on='championId')
         traitsdf=pd.melt(traitsdf,id_vars=['match_id','participants.placement'],value_vars='traits')
         traitsdf=pd.DataFrame(traitsdf.groupby(['match_id','participants.placement'])['value'].value_counts())
+        
         traitsjson = pd.read_json('traits.json')
-        traitsjson.explode('sets')
+        traitsjson = traitsjson.explode('sets').reset_index()
+        traitsjson = traitsjson.merge(traitsjson['sets'].apply(pd.Series))
