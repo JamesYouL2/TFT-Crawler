@@ -41,6 +41,8 @@ class TFTClusterer:
         self.traitscol=list(traitspivot.columns)
         self.itemscol=list(items.columns)
 
+        self.unitspivot = unitspivot
+
     def cluster(self, divisor = 25):
         #HDB Scan
         hdb = hdbscan.HDBSCAN(min_cluster_size=
@@ -48,7 +50,7 @@ class TFTClusterer:
         min_samples=1,
         cluster_selection_method='eom')
 
-        cols = self.unitscol #+ self.traitscol
+        cols = self.unitscol + self.traitscol
 
         #print(cols)
         #Cluster HDB
@@ -126,9 +128,20 @@ class TFTClusterer:
         championsjson = championsjson.explode('traits')
         
         traitsdf=self.unitsdf.merge(championsjson,left_on='character_id',right_on='championId')
-        traitsdf=pd.melt(traitsdf,id_vars=['match_id','participants.placement'],value_vars='traits')
-        traitsdf=pd.DataFrame(traitsdf.groupby(['match_id','participants.placement'])['value'].value_counts())
+        traitsdf=pd.melt(traitsdf,id_vars=['match_id','participants.placement','game_variation'],value_vars='traits')
+        traitsdf=pd.DataFrame(traitsdf.groupby(['match_id','participants.placement','game_variation'])['value'].value_counts())
+        traitsdf.columns=['number']
+        traitsdf=traitsdf.reset_index()
         
         traitsjson = pd.read_json('traits.json')
         traitsjson = traitsjson.explode('sets').reset_index()
-        traitsjson = traitsjson.merge(traitsjson['sets'].apply(pd.Series))
+        traitsjson = traitsjson.join(traitsjson['sets'].apply(pd.Series))
+        traitsjson['max']=traitsjson['max'].fillna(100).apply(int)
+
+        traitsmerge=traitsdf.merge(traitsjson,left_on='value',right_on='name')
+        traitsmerge=traitsmerge[traitsmerge['number']>=traitsmerge['min']]
+        traitsmerge=traitsmerge[traitsmerge['number']<=traitsmerge['max']]
+
+        self.traitspivot=pd.pivot_table(traitsmerge,index=['match_id','participants.placement','game_variation'],columns='name',values='min')
+        
+        self.clusterdf = self.unitspivot.join(self.traitspivot).reset_index()
