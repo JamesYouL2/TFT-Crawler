@@ -23,7 +23,8 @@ def main():
 
     #Cluster Data
     clusterclass=TFTClusterer(df)
-    clusterclass.cluster(divisor=30)
+    clusterclass.imputetraits()
+    clusterclass.cluster(divisor=20)
 
     #Output cluster figure
     clusterclass.plot.figure.savefig('fig.png')
