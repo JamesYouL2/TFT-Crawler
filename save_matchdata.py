@@ -23,7 +23,7 @@ def main():
 
     #Cluster Data
     clusterclass=TFTClusterer(df)
-    clusterclass.imputetraits()
+    #clusterclass.imputetraits()
     clusterclass.cluster(divisor=18)
 
     #Output cluster figure
