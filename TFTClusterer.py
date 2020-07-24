@@ -43,12 +43,13 @@ class TFTClusterer:
 
         self.unitspivot = unitspivot
 
-    def cluster(self, divisor = 25):
+    def cluster(self, divisor = 30, cluster_selection_epsilon = 0):
         #HDB Scan
         hdb = hdbscan.HDBSCAN(min_cluster_size=
         int(np.floor(len(self.clusterdf) / divisor)), 
         min_samples=1,
-        cluster_selection_method='eom')
+        cluster_selection_method='eom',
+        cluster_selection_epsilon=cluster_selection_epsilon)
 
         cols = self.unitscol + self.traitscol
 
@@ -77,8 +78,46 @@ class TFTClusterer:
 
         self.clusterdf=self.clusterdf.merge(pd.read_json('galaxies.json'),left_on='game_variation',right_on='key',how='left')
         self.clusterdf['game_variation']=np.where(self.clusterdf['name'].notnull(),self.clusterdf['name'],self.clusterdf['game_variation'])
+
+        #Game Variation name changes
         self.clusterdf['game_variation']=np.where(self.clusterdf['game_variation']=='TFT3_GameVariation_LittlerLegends','Littler Legends',self.clusterdf['game_variation'])
         self.clusterdf['game_variation']=np.where(self.clusterdf['game_variation']=='TFT3_GameVariation_TwoItemMax','Binary Star',self.clusterdf['game_variation'])
+        self.clusterdf['game_variation']=np.where(self.clusterdf['game_variation']=='TFT3_GameVariation_Dreadnova','Plunder Planet',self.clusterdf['game_variation'])
+        self.clusterdf['game_variation']=np.where(self.clusterdf['game_variation']=='TFT3_GameVariation_SmallerBoard','Dwarf Planet',self.clusterdf['game_variation'])
+
+
+    def mostcommon(self):
+        clusterdf = self.clusterdf
+        unitscol = self.unitscol
+        commoncomps = pd.DataFrame()
+        for i in clusterdf['hdbnumber'].unique():
+            #replace na with 0 to use size
+            mostcommondf=clusterclass.clusterdf[clusterclass.clusterdf['hdbnumber']==i]
+            mostcommondf.fillna(0,inplace=True)
+            countdf=mostcommondf.groupby(clusterclass.unitscol).size().reset_index(name='Count')
+            
+            #Create list of common comps
+            commoncompsdf = pd.DataFrame(countdf.sort_values('Count',ascending=False).head(10).stack(),columns=['Stars'])
+            commoncompsdf = commoncompsdf[commoncompsdf['Stars']!=0].reset_index(level=1)
+            commoncompsdf.rename(columns={'level_1': 'character_id'}, inplace=True)
+            commoncompsdf['Count']=countdf['Count']
+            commoncompsdf= commoncompsdf[commoncompsdf['character_id'] != 'Count']
+
+            #get most common 8 unit comps
+            common8unitcomps = commoncompsdf[commoncompsdf.groupby(level=0).count()['Stars']==8]
+            common8unitcomps = common8unitcomps[common8unitcomps['Count']==common8unitcomps['Count'].max()]
+            common8unitcomps['hdbnumber'] = i
+            common8unitcomps['nounits'] = 8
+
+            #get most common 8 unit comps
+            common9unitcomps = commoncompsdf[commoncompsdf.groupby(level=0).count()['Stars']==9]
+            common9unitcomps = common9unitcomps[common9unitcomps['Count']==common9unitcomps['Count'].max()]
+            common9unitcomps['hdbnumber'] = i
+            common9unitcomps['nounits'] = 9
+
+            commoncomps=pd.concat([commoncomps,common8unitcomps,common9unitcomps])
+        self.commoncomps = commoncomps
+
 
     def allhdbdf(self):
         clusterdf = self.clusterdf
