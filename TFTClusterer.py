@@ -48,8 +48,9 @@ class TFTClusterer:
         hdb = hdbscan.HDBSCAN(min_cluster_size=
         int(np.floor(len(self.clusterdf) / divisor)), 
         min_samples=1,
-        cluster_selection_method='eom',
-        cluster_selection_epsilon=cluster_selection_epsilon)
+        cluster_selection_method='eom'
+        #,cluster_selection_epsilon=cluster_selection_epsilon
+        )
 
         cols = self.unitscol + self.traitscol
 
