@@ -84,7 +84,7 @@ class TFTClusterer:
         self.clusterdf['game_variation']=np.where(self.clusterdf['game_variation']=='TFT3_GameVariation_LittlerLegends','Littler Legends',self.clusterdf['game_variation'])
         self.clusterdf['game_variation']=np.where(self.clusterdf['game_variation']=='TFT3_GameVariation_TwoItemMax','Binary Star',self.clusterdf['game_variation'])
         self.clusterdf['game_variation']=np.where(self.clusterdf['game_variation']=='TFT3_GameVariation_Dreadnova','Plunder Planet',self.clusterdf['game_variation'])
-        self.clusterdf['game_variation']=np.where(self.clusterdf['game_variation']=='TFT3_GameVariation_SmallerBoard','Dwarf Planet',self.clusterdf['game_variation'])
+        self.clusterdf['game_variation']=np.where(self.clusterdf['game_variation']=='TFT3_GameVariation_SmallerBoards','Dwarf Planet',self.clusterdf['game_variation'])
 
 
     def mostcommon(self):
