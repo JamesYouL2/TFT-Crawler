@@ -185,3 +185,37 @@ class TFTClusterer:
         self.traitspivot=pd.pivot_table(traitsmerge,index=['match_id','participants.placement','game_variation'],columns='name',values='min')
         
         self.clusterdf = self.unitspivot.join(self.traitspivot).reset_index()
+
+    # reduce dimensions
+    def reduce_dimension(self, n_components = 2):
+        cols = self.unitscol + self.traitscol
+        reducer = umap.UMAP(metric = 'manhattan', random_state = 42, n_components = n_components)
+        embed = reducer.fit_transform(self.clusterdf[cols])
+        self.clusterdf['embed_x'], self.clusterdf['embed_y'] = embed[:,0], embed[:,1]
+
+    # plot
+    def visualize(self, colors):
+        plt.figure(num=None, figsize=(15, 10), dpi=80, facecolor='w', edgecolor='k')
+        scat = plt.scatter(
+            self.clusterdf['embed_x'],
+            self.clusterdf['embed_y'],
+            c = colors)
+        plt.legend(
+            *scat.legend_elements(),
+            loc="lower left",)
+        plt.show()
+
+    # assign color to clusterdf
+    def make_cluster_colors(self):
+        color_palette = sns.color_palette(
+            'deep', self.clusterdf['hdbnumber'].nunique())
+        cluster_colors = [
+            color_palette[x]
+            if x >= 1
+            else (0.5, 0.5, 0.5)
+            for x in self.clusterdf['hdbnumber']]
+        return cluster_colors
+
+    # evaluate clustering
+    def eval_clustering(self):
+        self.visualize(self.make_cluster_colors())
