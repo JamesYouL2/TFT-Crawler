@@ -2,6 +2,9 @@ import json
 import pandas as pd
 import hdbscan
 import numpy as np
+import umap
+import seaborn as sns
+from matplotlib import pyplot as plt
 
 class TFTClusterer:
     def __init__(self, df):
@@ -36,6 +39,7 @@ class TFTClusterer:
         #itemspivot=pd.pivot_table(items,index=['match_id','participants.placement', 'game_variation'], columns=['participants.units.character_id'],values='count',aggfunc=np.sum)
 
         self.clusterdf = unitspivot.join(traitspivot).reset_index()
+        #self.clusterdf = self.clusterdf.fillna(0)
 
         self.unitscol=list(unitspivot.columns)
         self.traitscol=list(traitspivot.columns)
@@ -50,6 +54,7 @@ class TFTClusterer:
         min_samples=1,
         cluster_selection_method='eom'
         #,cluster_selection_epsilon=cluster_selection_epsilon
+        ,metric='manhattan'
         )
 
         cols = self.unitscol + self.traitscol
@@ -190,7 +195,8 @@ class TFTClusterer:
     def reduce_dimension(self, n_components = 2):
         cols = self.unitscol + self.traitscol
         reducer = umap.UMAP(metric = 'manhattan', random_state = 42, n_components = n_components)
-        embed = reducer.fit_transform(self.clusterdf[cols])
+        clusterdf = self.clusterdf.fillna(0)
+        embed = reducer.fit_transform(clusterdf[cols])
         self.clusterdf['embed_x'], self.clusterdf['embed_y'] = embed[:,0], embed[:,1]
 
     # plot
