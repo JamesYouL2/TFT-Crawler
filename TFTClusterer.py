@@ -80,6 +80,7 @@ class TFTClusterer:
         traits['name']=traits['name_y']
         minunits = pd.DataFrame(traits.groupby(['name','tier_current']).num_units.min())
         minunits.columns=['minunit']
+        minunits['minunit'] = minunits['minunit'] * 2
         traits = pd.merge(minunits,traits,left_index=True,right_on=['name','tier_current'])
 
         self.itemsdf = items
