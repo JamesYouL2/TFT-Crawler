@@ -20,7 +20,7 @@ assert len(df) >= 100, "less than 100 matches in newest patch"
 clusterclass=TFTClusterer(df)
 #clusterclass.imputetraits()
 clusterclass.reduce_dimension()
-clusterclass.cluster(divisor=30, cluster_selection_epsilon=50)
+clusterclass.cluster(divisor=30, cluster_selection_epsilon=0)
 
 clusterclass.eval_clustering()
 clusterclass.plot.figure.savefig('fig.png')
