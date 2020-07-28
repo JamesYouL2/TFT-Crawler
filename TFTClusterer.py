@@ -6,6 +6,49 @@ import umap
 import seaborn as sns
 from matplotlib import pyplot as plt
 
+EXPECTED_PRICE = {
+    1 : {
+        3 : 10.4,
+        4 : 10.4,
+        5 : 10.4,
+        6 : 10.4,
+        7 : 10.4,
+        8 : 10.4,
+        9 : 10.4,},
+    2 : {
+        3 : 14.5,
+        4 : 14.5,
+        5 : 14.5,
+        6 : 14.5,
+        7 : 14.5,
+        8 : 14.5,
+        9 : 14.5,},
+    3 : {
+        3 : 96.8,
+        4 : 32.8,
+        5 : 20.0,
+        6 : 16.8,
+        7 : 15.4,
+        8 : 14.5,
+        9 : 14.5,},
+    4 : {
+        3 : 500,
+        4 : 300,
+        5 : 121, 
+        6 : 36.8,
+        7 : 24.8,
+        8 : 18.8,
+        9 : 12.8,},
+    5 : {
+        3 : 999,
+        4 : 999,
+        5 : 999,
+        6 : 481,
+        7 : 121,
+        8 : 48.8,
+        9 : 24.8,}
+    }
+
 class TFTClusterer:
     def __init__(self, df):
         allrecords = df.to_json(orient='records')
@@ -22,10 +65,12 @@ class TFTClusterer:
         record_path=['participants','units', 'items'],
         meta=['match_id','game_variation',['participants','placement'],['participants','puuid'],['participants','units','character_id']])
 
+        units['gold'] = units['rarity'] + 1
+
         units['ExpectedGold']=units.apply(
                 lambda row:
-                    (3**((row['tier'] - 1))*1.15) * (row['gold'] + EXPECTED_PRICE[row['gold']][row['participants.level']]),
-                    axis = 1)
+                    (3**((row['tier'] - 1))*1.15) * (row['rarity']+1 + EXPECTED_PRICE[row['rarity']+1][row['participants.level']]),
+                    axis = 'columns')
 
         items.rename(columns={0: "item"},inplace=True)
         items['count']=1
@@ -64,7 +109,7 @@ class TFTClusterer:
         ,cluster_selection_epsilon=cluster_selection_epsilon
         ,metric='manhattan'
         )
-        cols = ['embed_x','embed_y']
+        cols = self.unitscol + self.traitscol
 
         #print(cols)
         #Cluster HDB
