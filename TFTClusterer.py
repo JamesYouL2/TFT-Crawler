@@ -244,7 +244,7 @@ class TFTClusterer:
         self.clusterdf = self.unitspivot.join(self.traitspivot).reset_index()
 
     # reduce dimensions
-    def reduce_dimension(self, n_components = 2):
+    def reduce_dimension_graph(self, n_components = 2):
         cols = self.unitscol + self.traitscol
         reducer = umap.UMAP(metric = 'manhattan', random_state = 42, n_components = n_components)
         clusterdf = self.clusterdf.fillna(0)
@@ -277,3 +277,14 @@ class TFTClusterer:
     # evaluate clustering
     def eval_clustering(self):
         self.visualize(self.make_cluster_colors())
+
+    # reduce dimensions
+    def reduce_dimension(self, n_components = 2):
+        cols = self.unitscol + self.traitscol
+        reducer = umap.UMAP(metric = 'manhattan', random_state = 42, n_components = n_components)
+        clusterdf = self.clusterdf.fillna(0)
+        embed = reducer.fit_transform(clusterdf[cols])
+        x = 0
+        for i in range(n_components):
+            clusterdf['embed_' + str(x)] = embed[:,x]
+            x = x + 1

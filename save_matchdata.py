@@ -27,8 +27,8 @@ def main():
     clusterclass.cluster(divisor=30, cluster_selection_epsilon=0)
 
     #Output cluster figure
-    clusterclass.reduce_dimension()
-    clusterclass.eval_clustering()
+    #clusterclass.reduce_dimension_graph()
+    #clusterclass.eval_clustering()
     clusterclass.plot.figure.savefig('fig.png')
     pd.DataFrame(clusterclass.clusterdf.groupby('hdbnumber')['hdb'].value_counts()).to_csv('hdbnumber.csv')
     print(sum(clusterclass.clusterdf['hdbnumber']==0)/len(clusterclass.clusterdf))
