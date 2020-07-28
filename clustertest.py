@@ -10,19 +10,18 @@ from SQLGatherer import loaddb
 from matplotlib import pyplot as plt
 
 df = loaddb(hours=24)
-gameversion = df['game_version'].max()
+#gameversion = df['game_version'].max()
 
-df=df.loc[df['game_version']==gameversion]
+#df=df.loc[df['game_version']==gameversion]
 
 assert len(df) >= 100, "less than 100 matches in newest patch"
 
 #Cluster Data
 clusterclass=TFTClusterer(df)
 #clusterclass.imputetraits()
-clusterclass.reduce_dimension_graph()
-clusterclass.cluster(divisor=30, cluster_selection_epsilon=0)
+clusterclass.cluster(divisor=30)
 
-clusterclass.eval_clustering()
+#Output cluster figure
 clusterclass.plot.figure.savefig('fig.png')
 pd.DataFrame(clusterclass.clusterdf.groupby('hdbnumber')['hdb'].value_counts()).to_csv('hdbnumber.csv')
 print(sum(clusterclass.clusterdf['hdbnumber']==0)/len(clusterclass.clusterdf))
@@ -36,3 +35,7 @@ clusterclass.clusterdf[["comp_id","participants.placement","hdb","game_variation
 f = open('newestdate.csv','w')
 f.write(str(datetime.fromtimestamp(df['game_datetime'].max()/1e3))) #Give your csv text here.
 f.close()
+
+clusterclass.reduce_dimension_graph()
+clusterclass.eval_clustering()
+clusterclass.nmapplt.show()
