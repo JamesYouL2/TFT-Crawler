@@ -43,7 +43,7 @@ class TFTClusterer:
         
         #Pivot and combine spreadsheets
         unitspivot=pd.pivot_table(units,index=['match_id','participants.placement', 'game_variation'], columns='character_id',values='tier')
-        traitspivot=pd.pivot_table(traits,index=['match_id','participants.placement', 'game_variation'], columns='name',values='num_units')
+        traitspivot=pd.pivot_table(traits,index=['match_id','participants.placement', 'game_variation'], columns='name',values='minunit')
         #itemspivot=pd.pivot_table(items,index=['match_id','participants.placement', 'game_variation'], columns=['participants.units.character_id'],values='count',aggfunc=np.sum)
 
         self.clusterdf = unitspivot.join(traitspivot).reset_index()
@@ -61,11 +61,10 @@ class TFTClusterer:
         int(np.floor(len(self.clusterdf) / divisor)), 
         min_samples=1,
         cluster_selection_method='eom'
-        #,cluster_selection_epsilon=cluster_selection_epsilon
+        ,cluster_selection_epsilon=cluster_selection_epsilon
         ,metric='manhattan'
         )
-
-        cols = self.unitscol + self.traitscol
+        cols = ['embed_x','embed_y']
 
         #print(cols)
         #Cluster HDB
