@@ -31,6 +31,7 @@ def main():
     clusterclass.eval_clustering()
     clusterclass.plot.figure.savefig('fig.png')
     pd.DataFrame(clusterclass.clusterdf.groupby('hdbnumber')['hdb'].value_counts()).to_csv('hdbnumber.csv')
+    print(sum(clusterclass.clusterdf['hdbnumber']==0)/len(clusterclass.clusterdf))
 
     #output Files for Power BI
     clusterclass.unitshdb.to_csv("unitshdb.csv",index=False)
