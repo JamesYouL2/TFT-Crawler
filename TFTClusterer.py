@@ -16,11 +16,16 @@ class TFTClusterer:
 
         units = pd.json_normalize(json.loads(allrecords), 
         record_path=['participants','units'],
-        meta=['match_id','game_variation',['participants','placement'],['participants','puuid']])
+        meta=['match_id','game_variation',['participants','placement'],['participants','puuid'],['participants','level']])
 
         items = pd.json_normalize(json.loads(allrecords),
         record_path=['participants','units', 'items'],
         meta=['match_id','game_variation',['participants','placement'],['participants','puuid'],['participants','units','character_id']])
+
+        units['ExpectedGold']=units.apply(
+                lambda row:
+                    (3**((row['tier'] - 1))*1.15) * (row['gold'] + EXPECTED_PRICE[row['gold']][row['participants.level']]),
+                    axis = 1)
 
         items.rename(columns={0: "item"},inplace=True)
         items['count']=1
@@ -28,6 +33,9 @@ class TFTClusterer:
 
         traits=traits.merge(pd.read_json('traits.json'),left_on='name',right_on='key')
         traits['name']=traits['name_y']
+        minunits = pd.DataFrame(traits.groupby(['name','tier_current']).num_units.min())
+        minunits.columns=['minunit']
+        traits = pd.merge(minunits,traits,left_index=True,right_on=['name','tier_current'])
 
         self.itemsdf = items
         self.unitsdf = units
