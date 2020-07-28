@@ -5,49 +5,8 @@ import numpy as np
 import umap
 import seaborn as sns
 from matplotlib import pyplot as plt
-
-EXPECTED_PRICE = {
-    1 : {
-        3 : 10.4,
-        4 : 10.4,
-        5 : 10.4,
-        6 : 10.4,
-        7 : 10.4,
-        8 : 10.4,
-        9 : 10.4,},
-    2 : {
-        3 : 14.5,
-        4 : 14.5,
-        5 : 14.5,
-        6 : 14.5,
-        7 : 14.5,
-        8 : 14.5,
-        9 : 14.5,},
-    3 : {
-        3 : 96.8,
-        4 : 32.8,
-        5 : 20.0,
-        6 : 16.8,
-        7 : 15.4,
-        8 : 14.5,
-        9 : 14.5,},
-    4 : {
-        3 : 500,
-        4 : 300,
-        5 : 121, 
-        6 : 36.8,
-        7 : 24.8,
-        8 : 18.8,
-        9 : 12.8,},
-    5 : {
-        3 : 999,
-        4 : 999,
-        5 : 999,
-        6 : 481,
-        7 : 121,
-        8 : 48.8,
-        9 : 24.8,}
-    }
+import re
+from sklearn.preprocessing import normalize
 
 class TFTClusterer:
     def __init__(self, df):
@@ -66,11 +25,6 @@ class TFTClusterer:
         meta=['match_id','game_variation',['participants','placement'],['participants','puuid'],['participants','units','character_id']])
 
         units['gold'] = units['rarity'] + 1
-
-        units['ExpectedGold']=units.apply(
-                lambda row:
-                    (3**((row['tier'] - 1))*1.15) * (row['rarity']+1 + EXPECTED_PRICE[row['rarity']+1][row['participants.level']]),
-                    axis = 'columns')
 
         items.rename(columns={0: "item"},inplace=True)
         items['count']=1
@@ -101,21 +55,31 @@ class TFTClusterer:
 
         self.unitspivot = unitspivot
 
-    def cluster(self, divisor = 30, cluster_selection_epsilon = 0):
+    def cluster(self, divisor = 30, cluster_selection_epsilon = 0, metric = 'euclidean', algorithm = 'best'):
         #HDB Scan
         hdb = hdbscan.HDBSCAN(min_cluster_size=
         int(np.floor(len(self.clusterdf) / divisor)), 
         min_samples=1,
         cluster_selection_method='eom'
         ,cluster_selection_epsilon=cluster_selection_epsilon
-        ,metric='manhattan'
+        ,metric= metric
+        ,algorithm=algorithm
         )
-        cols = self.unitscol + self.traitscol
 
+        #Get Cluster embed cols to work on hdbscan
+        clusterdfcols = self.clusterdf.columns
+        r = re.compile("^clusterembed")
+        #cols = list(filter(r.match,clusterdfcols))
+
+        #Normalize data
+        cols = self.unitscol + self.traitscol
+        data = self.clusterdf[cols].fillna(0)
+        norm_data = normalize(data, norm='l2')
+    
         #print(cols)
         #Cluster HDB
         print('HDB Scan')
-        clusterer=hdb.fit(self.clusterdf[cols].fillna(0))
+        clusterer=hdb.fit(norm_data)
         self.plot = clusterer.condensed_tree_.plot(select_clusters=True, label_clusters=True)
         
         self.clusterdf['hdbnumber'] = pd.Series(hdb.labels_+1, index=self.clusterdf.index)
@@ -263,6 +227,7 @@ class TFTClusterer:
             *scat.legend_elements(),
             loc="lower left",)
         plt.show()
+        self.nmapplt = plt
 
     # assign color to clusterdf
     def make_cluster_colors(self):
@@ -283,9 +248,9 @@ class TFTClusterer:
     def reduce_dimension(self, n_components = 2):
         cols = self.unitscol + self.traitscol
         reducer = umap.UMAP(metric = 'manhattan', random_state = 42, n_components = n_components)
-        clusterdf = self.clusterdf.fillna(0)
-        embed = reducer.fit_transform(clusterdf[cols])
+        clusterdfcopy = self.clusterdf.fillna(0)
+        embed = reducer.fit_transform(clusterdfcopy[cols])
         x = 0
         for i in range(n_components):
-            clusterdf['embed_' + str(x)] = embed[:,x]
+            self.clusterdf['clusterembed_' + str(x)] = embed[:,x]
             x = x + 1
