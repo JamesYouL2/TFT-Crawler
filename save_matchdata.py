@@ -15,9 +15,10 @@ from matplotlib import pyplot as plt
 def main():
     #Grab Data
     df = loaddb(hours=24)
-    gameversion = df['game_version'].max()
+    df['patch_version'] = df['game_version'].str.split('.').str[:2].apply(lambda parts: ".".join(parts))
+    patchversion = df['patch_version'].max()
 
-    df=df.loc[df['game_version']==gameversion]
+    df=df.loc[df['patch_version']==patchversion]
 
     assert len(df) >= 100, "less than 100 matches in newest patch"
 
