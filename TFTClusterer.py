@@ -67,17 +67,21 @@ class TFTClusterer:
         ,algorithm=algorithm
         )
 
-
-
         #Normalize data
         cols = self.unitscol + self.traitscol
         data = self.clusterdf[cols].fillna(0)
         norm_data = normalize(data, norm='l2')
 
+        ##Cannot make dimension reduction work
+        #reducer = umap.UMAP(metric = 'manhattan', random_state = 42, n_components = n_components)
+        #embed = reducer.fit_transform(norm_data)
+
+        embed = norm_data
+
         #print(cols)
         #Cluster HDB
         print('HDB Scan')
-        clusterer=hdb.fit(norm_data)
+        clusterer=hdb.fit(embed)
         self.plot = clusterer.condensed_tree_.plot(select_clusters=True, label_clusters=True)
         
         self.clusterdf['hdbnumber'] = pd.Series(hdb.labels_+1, index=self.clusterdf.index)
