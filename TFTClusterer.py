@@ -6,7 +6,8 @@ import umap
 import seaborn as sns
 from matplotlib import pyplot as plt
 import re
-from sklearn.preprocessing import normalize
+from sklearn.preprocessing import normalize, scale
+from sklearn.decomposition import PCA
 
 class TFTClusterer:
     def __init__(self, df):
@@ -55,7 +56,7 @@ class TFTClusterer:
 
         self.unitspivot = unitspivot
 
-    def cluster(self, divisor = 30, cluster_selection_epsilon = 0, metric = 'euclidean', algorithm = 'best'):
+    def cluster(self, divisor = 30, cluster_selection_epsilon = 0, metric = 'euclidean', algorithm = 'best', n_components = 10):
         #HDB Scan
         hdb = hdbscan.HDBSCAN(min_cluster_size=
         int(np.floor(len(self.clusterdf) / divisor)), 
@@ -66,16 +67,13 @@ class TFTClusterer:
         ,algorithm=algorithm
         )
 
-        #Get Cluster embed cols to work on hdbscan
-        clusterdfcols = self.clusterdf.columns
-        r = re.compile("^clusterembed")
-        #cols = list(filter(r.match,clusterdfcols))
+
 
         #Normalize data
         cols = self.unitscol + self.traitscol
         data = self.clusterdf[cols].fillna(0)
         norm_data = normalize(data, norm='l2')
-    
+
         #print(cols)
         #Cluster HDB
         print('HDB Scan')
