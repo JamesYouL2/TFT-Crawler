@@ -21,4 +21,4 @@ COPY . /
 WORKDIR /app
 
 #Run scripts
-CMD [ "python", "./main.py" ]
+CMD [ "python", "./dockerloader.py" ]
