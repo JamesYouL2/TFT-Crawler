@@ -23,7 +23,7 @@ def main():
     assert len(df) >= 100, "less than 100 matches in newest patch"
 
     #Cluster Data
-    clusterclass=TFTClusterer(df)
+    clusterclass=TFTClusterer(df, minunit = 1.33)
     #clusterclass.imputetraits()
     clusterclass.cluster(divisor=25, cluster_selection_epsilon=0)
 
@@ -33,6 +33,7 @@ def main():
     clusterclass.plot.figure.savefig('fig.png')
     pd.DataFrame(clusterclass.clusterdf.groupby('hdbnumber')['hdb'].value_counts()).to_csv('hdbnumber.csv')
     print(sum(clusterclass.clusterdf['hdbnumber']==0)/len(clusterclass.clusterdf))
+
 
     #output Files for Power BI
     clusterclass.unitshdb.to_csv("unitshdb.csv",index=False)

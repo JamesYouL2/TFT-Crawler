@@ -10,7 +10,7 @@ from sklearn.preprocessing import normalize, scale
 from sklearn.decomposition import PCA
 
 class TFTClusterer:
-    def __init__(self, df):
+    def __init__(self, df, minunit = 1.5):
         allrecords = df.to_json(orient='records')
 
         traits = pd.json_normalize(json.loads(allrecords), 
@@ -35,7 +35,7 @@ class TFTClusterer:
         traits['name']=traits['name_y']
         minunits = pd.DataFrame(traits.groupby(['name','tier_current']).num_units.min())
         minunits.columns=['minunit']
-        minunits['minunit'] = minunits['minunit'] * 2
+        minunits['minunit'] = minunits['minunit'] * minunit
         traits = pd.merge(minunits,traits,left_index=True,right_on=['name','tier_current'])
 
         self.itemsdf = items
@@ -220,7 +220,7 @@ class TFTClusterer:
 
     # plot
     def visualize(self, colors):
-        plt.figure(num=None, figsize=(15, 10), dpi=80, facecolor='w', edgecolor='k')
+        plt.figure(num=None, figsize=(6, 4), dpi=80, facecolor='w', edgecolor='k')
         scat = plt.scatter(
             self.clusterdf['embed_x'],
             self.clusterdf['embed_y'],
@@ -228,8 +228,9 @@ class TFTClusterer:
         plt.legend(
             *scat.legend_elements(),
             loc="lower left",)
-        plt.show()
+        plt.savefig('nmap.png')
         self.nmapplt = plt
+        plt.show()
 
     # assign color to clusterdf
     def make_cluster_colors(self):
