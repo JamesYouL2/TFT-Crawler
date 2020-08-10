@@ -12,6 +12,8 @@ RUN pip install tabulate
 RUN pip install pantheon
 RUN pip install nest_asyncio
 RUN pip install pygsheets
+RUN pip install umap-learn
+RUN pip install pydrive
 
 #Copy working directory
 COPY . /
