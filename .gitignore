@@ -13,3 +13,4 @@ keys.ini
 site
 *.yaml
 *.png
+*.ipynb
