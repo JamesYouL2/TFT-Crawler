@@ -7,10 +7,8 @@ import numpy as np
 from TFTClusterer import TFTClusterer
 from datetime import datetime, timedelta
 from googledrivesave import trashfolder, outputtodrive
-import pygsheets
 from SQLGatherer import loaddb
 from matplotlib import pyplot as plt
-
 
 def main():
     #Grab Data
@@ -23,7 +21,7 @@ def main():
     assert len(df) >= 100, "less than 100 matches in newest patch"
 
     #Cluster Data
-    clusterclass=TFTClusterer(df, minunit = 1.33)
+    clusterclass=TFTClusterer(df, minunit = 1.25)
     #clusterclass.imputetraits()
     clusterclass.cluster(divisor=25, cluster_selection_epsilon=0)
 
