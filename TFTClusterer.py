@@ -153,7 +153,6 @@ class TFTClusterer:
             commoncomps=pd.concat([commoncomps,common8unitcomps,common9unitcomps])
         self.commoncomps = commoncomps
 
-
     def allhdbdf(self):
         clusterdf = self.clusterdf
         unitscol = self.unitscol
