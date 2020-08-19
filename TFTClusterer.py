@@ -118,15 +118,18 @@ class TFTClusterer:
         self.clusterdf['game_variation']=np.where(self.clusterdf['game_variation']=='TFT3_GameVariation_ItemsBreak','Salvage World',self.clusterdf['game_variation'])
         self.clusterdf['game_variation']=np.where(self.clusterdf['game_variation']=='TFT3_GameVariation_FreeSpatula','Manatees Delight',self.clusterdf['game_variation'])
     
+        comppop=pd.DataFrame(self.clusterdf.groupby('match_id')['hdb'].value_counts().rename('compsinmatch'))
+        self.clusterdf=pd.merge(self.clusterdf,comppop,left_on=['match_id','hdb'],right_index=True)
+
     def mostcommon(self):
         clusterdf = self.clusterdf
         unitscol = self.unitscol
         commoncomps = pd.DataFrame()
         for i in clusterdf['hdbnumber'].unique():
             #replace na with 0 to use size
-            mostcommondf=clusterclass.clusterdf[clusterclass.clusterdf['hdbnumber']==i]
+            mostcommondf=clusterdf[clusterdf['hdbnumber']==i]
             mostcommondf.fillna(0,inplace=True)
-            countdf=mostcommondf.groupby(clusterclass.unitscol).size().reset_index(name='Count')
+            countdf=mostcommondf.groupby(unitscol).size().reset_index(name='Count')
             
             #Create list of common comps
             commoncompsdf = pd.DataFrame(countdf.sort_values('Count',ascending=False).head(10).stack(),columns=['Stars'])

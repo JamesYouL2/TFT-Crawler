@@ -35,7 +35,7 @@ def main(hours = 24):
     #output Files for Power BI
     clusterclass.unitshdb.to_csv("unitshdb.csv",index=False)
     clusterclass.itemshdb.to_csv("itemshdb.csv",index=False)
-    clusterclass.clusterdf[["comp_id","participants.placement","hdb","game_variation"]].to_csv("hdb.csv",index=False)
+    clusterclass.clusterdf[["comp_id","participants.placement","hdb","game_variation","compsinmatch"]].to_csv("hdb.csv",index=False)
 
     #Write newest date
     f = open('newestdate.csv','w')
