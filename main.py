@@ -1,5 +1,5 @@
-import loadpuuid
-import loadmatchhistory
+#import loadpuuid
+#import loadmatchhistory
 import save_matchdata
 import asyncio
 import time
@@ -7,5 +7,5 @@ import time
 #new Workflow
 start=time.time()
 print ("Create Clusters")
-save_matchdata.main()
+save_matchdata.main(hours=24)
 print("GetClusterTime:",(time.time()-start)/60)
