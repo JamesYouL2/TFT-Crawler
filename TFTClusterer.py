@@ -10,7 +10,7 @@ from sklearn.preprocessing import normalize, scale
 from sklearn.decomposition import PCA
 
 class TFTClusterer:
-    def __init__(self, df, minunit = 1.5):
+    def __init__(self, df, minunit = 1.25):
         allrecords = df.to_json(orient='records')
 
         traits = pd.json_normalize(json.loads(allrecords), 
@@ -45,14 +45,20 @@ class TFTClusterer:
         #Pivot and combine spreadsheets
         unitspivot=pd.pivot_table(units,index=['match_id','participants.placement', 'game_variation'], columns='character_id',values='tier')
         traitspivot=pd.pivot_table(traits,index=['match_id','participants.placement', 'game_variation'], columns='name',values='minunit')
+        traitsnumunitpivot=pd.pivot_table(traits,index=['match_id','participants.placement', 'game_variation'], columns='name',values='num_units')
         #itemspivot=pd.pivot_table(items,index=['match_id','participants.placement', 'game_variation'], columns=['participants.units.character_id'],values='count',aggfunc=np.sum)
 
-        self.clusterdf = unitspivot.join(traitspivot).reset_index()
+        traitsnumunitpivot.columns = traitsnumunitpivot.columns + 'numunit'
+
+        dfs = [unitspivot, traitspivot, traitsnumunitpivot]
+
+        self.clusterdf = dfs[0].join(dfs[1:]).reset_index()
         #self.clusterdf = self.clusterdf.fillna(0)
 
         self.unitscol=list(unitspivot.columns)
         self.traitscol=list(traitspivot.columns)
         self.itemscol=list(items.columns)
+        self.traitsnumunitcol=list(traitsnumunitpivot.columns)
 
         self.unitspivot = unitspivot
 
@@ -68,7 +74,7 @@ class TFTClusterer:
         )
 
         #Normalize data
-        cols = self.unitscol + self.traitscol
+        cols = self.unitscol + self.traitscol + self.traitsnumunitcol
         data = self.clusterdf[cols].fillna(0)
         norm_data = normalize(data, norm='l2')
 
