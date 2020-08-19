@@ -10,9 +10,9 @@ from googledrivesave import trashfolder, outputtodrive
 from SQLGatherer import loaddb
 from matplotlib import pyplot as plt
 
-def main():
+def main(hours = 24):
     #Grab Data
-    df = loaddb(hours=24)
+    df = loaddb(hours=hours)
     df['patch_version'] = df['game_version'].str.split('.').str[:2].apply(lambda parts: ".".join(parts))
     patchversion = df['patch_version'].max()
 
