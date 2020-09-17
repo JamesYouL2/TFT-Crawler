@@ -56,8 +56,10 @@ async def getchallengerladder(panth):
                 return ladder
         except pantheon.exc.RateLimit as e:
             print(e, panth._server)
-            await asyncio.sleep(random.uniform(0,240))       
+            await asyncio.sleep(random.uniform(0,240))
         except Exception as e:
+            if e.args[0] == 'Unidentified error code : 204':
+                return pd.DataFrame()
             raise e
 
 async def getmasterladder(panth):
@@ -76,6 +78,8 @@ async def getmasterladder(panth):
             print(e, panth._server)
             await asyncio.sleep(random.uniform(0,240))       
         except Exception as e:
+            if e.args[0] == 'Unidentified error code : 204':
+                return pd.DataFrame()
             raise e
 
 async def getgrandmasterladder(panth):
@@ -94,6 +98,8 @@ async def getgrandmasterladder(panth):
             print(e, panth._server)
             await asyncio.sleep(random.uniform(0,240))       
         except Exception as e:
+            if e.args[0] == 'Unidentified error code : 204':
+                return pd.DataFrame()
             raise e
 
 #Create db if does not yet exist
