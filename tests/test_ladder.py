@@ -21,9 +21,9 @@ def getladder():
         print(region)
         panth = pantheon.Pantheon(region, key.get('setup', 'api_key'), errorHandling=True, debug=True)
         data = asyncio.run(loadpuuid.getmasterplus(panth))
-        pd.concat([alldata, data])
+        alldata=pd.concat([alldata, data])
     return alldata
 
-def test():
-    test = getladder()
-    assert len(test > 0)
+def testfn():
+    testdb = getladder()
+    assert len(testdb) > 0
