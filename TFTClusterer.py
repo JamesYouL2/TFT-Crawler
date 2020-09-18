@@ -15,15 +15,15 @@ class TFTClusterer:
 
         traits = pd.json_normalize(json.loads(allrecords), 
         record_path=['participants','traits'],
-        meta=['match_id','game_variation',['participants','placement'],['participants','puuid']])
+        meta=['match_id',['participants','placement'],['participants','puuid']])
 
         units = pd.json_normalize(json.loads(allrecords), 
         record_path=['participants','units'],
-        meta=['match_id','game_variation',['participants','placement'],['participants','puuid'],['participants','level']])
+        meta=['match_id',['participants','placement'],['participants','puuid'],['participants','level']])
 
         items = pd.json_normalize(json.loads(allrecords),
         record_path=['participants','units', 'items'],
-        meta=['match_id','game_variation',['participants','placement'],['participants','puuid'],['participants','units','character_id']])
+        meta=['match_id',['participants','placement'],['participants','puuid'],['participants','units','character_id']])
 
         units['gold'] = units['rarity'] + 1
 
@@ -43,10 +43,10 @@ class TFTClusterer:
         self.traitsdf = traits
         
         #Pivot and combine spreadsheets
-        unitspivot=pd.pivot_table(units,index=['match_id','participants.placement', 'game_variation'], columns='character_id',values='tier')
-        traitspivot=pd.pivot_table(traits,index=['match_id','participants.placement', 'game_variation'], columns='name',values='minunit')
-        traitsnumunitpivot=pd.pivot_table(traits,index=['match_id','participants.placement', 'game_variation'], columns='name',values='num_units')
-        #itemspivot=pd.pivot_table(items,index=['match_id','participants.placement', 'game_variation'], columns=['participants.units.character_id'],values='count',aggfunc=np.sum)
+        unitspivot=pd.pivot_table(units,index=['match_id','participants.placement'], columns='character_id',values='tier')
+        traitspivot=pd.pivot_table(traits,index=['match_id','participants.placement'], columns='name',values='minunit')
+        traitsnumunitpivot=pd.pivot_table(traits,index=['match_id','participants.placement'], columns='name',values='num_units')
+        #itemspivot=pd.pivot_table(items,index=['match_id','participants.placement'], columns=['participants.units.character_id'],values='count',aggfunc=np.sum)
 
         traitsnumunitpivot.columns = traitsnumunitpivot.columns + 'numunit'
 
@@ -107,17 +107,6 @@ class TFTClusterer:
         self.unitshdb=self.unitsdf.merge(self.clusterdf)[list(self.unitsdf.columns)+list(['hdb'])+list(['comp_id'])]
         self.itemshdb=self.itemsdf.merge(self.clusterdf)[list(self.itemsdf.columns)+list(['hdb'])+list(['comp_id'])]
 
-        self.clusterdf=self.clusterdf.merge(pd.read_json('galaxies.json'),left_on='game_variation',right_on='key',how='left')
-        self.clusterdf['game_variation']=np.where(self.clusterdf['name'].notnull(),self.clusterdf['name'],self.clusterdf['game_variation'])
-
-        #Game Variation name changes
-        self.clusterdf['game_variation']=np.where(self.clusterdf['game_variation']=='TFT3_GameVariation_LittlerLegends','Littler Legends',self.clusterdf['game_variation'])
-        self.clusterdf['game_variation']=np.where(self.clusterdf['game_variation']=='TFT3_GameVariation_TwoItemMax','Binary Star',self.clusterdf['game_variation'])
-        self.clusterdf['game_variation']=np.where(self.clusterdf['game_variation']=='TFT3_GameVariation_Dreadnova','Plunder Planet',self.clusterdf['game_variation'])
-        self.clusterdf['game_variation']=np.where(self.clusterdf['game_variation']=='TFT3_GameVariation_SmallerBoards','Dwarf Planet',self.clusterdf['game_variation'])
-        self.clusterdf['game_variation']=np.where(self.clusterdf['game_variation']=='TFT3_GameVariation_ItemsBreak','Salvage World',self.clusterdf['game_variation'])
-        self.clusterdf['game_variation']=np.where(self.clusterdf['game_variation']=='TFT3_GameVariation_FreeSpatula','Manatees Delight',self.clusterdf['game_variation'])
-    
         comppop=pd.DataFrame(self.clusterdf.groupby('match_id')['hdb'].value_counts().rename('compsinmatch'))
         self.clusterdf=pd.merge(self.clusterdf,comppop,left_on=['match_id','hdb'],right_index=True)
 
@@ -201,8 +190,8 @@ class TFTClusterer:
         championsjson = championsjson.explode('traits')
         
         traitsdf=self.unitsdf.merge(championsjson,left_on='character_id',right_on='championId')
-        traitsdf=pd.melt(traitsdf,id_vars=['match_id','participants.placement','game_variation'],value_vars='traits')
-        traitsdf=pd.DataFrame(traitsdf.groupby(['match_id','participants.placement','game_variation'])['value'].value_counts())
+        traitsdf=pd.melt(traitsdf,id_vars=['match_id','participants.placement'],value_vars='traits')
+        traitsdf=pd.DataFrame(traitsdf.groupby(['match_id','participants.placement'])['value'].value_counts())
         traitsdf.columns=['number']
         traitsdf=traitsdf.reset_index()
         
@@ -215,7 +204,7 @@ class TFTClusterer:
         traitsmerge=traitsmerge[traitsmerge['number']>=traitsmerge['min']]
         traitsmerge=traitsmerge[traitsmerge['number']<=traitsmerge['max']]
 
-        self.traitspivot=pd.pivot_table(traitsmerge,index=['match_id','participants.placement','game_variation'],columns='name',values='min')
+        self.traitspivot=pd.pivot_table(traitsmerge,index=['match_id','participants.placement'],columns='name',values='min')
         
         self.clusterdf = self.unitspivot.join(self.traitspivot).reset_index()
 
