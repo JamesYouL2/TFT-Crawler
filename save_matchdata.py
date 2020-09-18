@@ -10,7 +10,7 @@ from googledrivesave import trashfolder, outputtodrive
 from SQLGatherer import loaddb
 from matplotlib import pyplot as plt
 
-def main(hours = 24):
+def main(hours = 24, divisor = 25):
     #Grab Data
     df = loaddb(hours=hours)
     df['patch_version'] = df['game_version'].str.split('.').str[:2].apply(lambda parts: ".".join(parts))
@@ -23,7 +23,7 @@ def main(hours = 24):
     #Cluster Data
     clusterclass=TFTClusterer(df, minunit = 1.25)
     #clusterclass.imputetraits()
-    clusterclass.cluster(divisor=25, cluster_selection_epsilon=0)
+    clusterclass.cluster(divisor=divisor, cluster_selection_epsilon=0)
 
     #Output cluster figure
     #clusterclass.reduce_dimension_graph()
@@ -35,7 +35,7 @@ def main(hours = 24):
     #output Files for Power BI
     clusterclass.unitshdb.to_csv("unitshdb.csv",index=False)
     clusterclass.itemshdb.to_csv("itemshdb.csv",index=False)
-    clusterclass.clusterdf[["comp_id","participants.placement","hdb","game_variation","compsinmatch"]].to_csv("hdb.csv",index=False)
+    clusterclass.clusterdf[["comp_id","participants.placement","hdb","compsinmatch"]].to_csv("hdb.csv",index=False)
 
     #Write newest date
     f = open('newestdate.csv','w')
@@ -51,5 +51,3 @@ def main(hours = 24):
     outputtodrive(allhdbdf.sort_index(),variationname)
 
     outputtodrive(pd.DataFrame(data={'last_datetime': [df['game_datetime'].max()]}),'last_datetime')
-    outputtodrive(pd.DataFrame(df['game_variation'].value_counts()),'gamevariationcounts')
-
