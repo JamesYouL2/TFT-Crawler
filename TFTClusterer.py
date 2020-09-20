@@ -142,7 +142,7 @@ class TFTClusterer:
             commoncomps=pd.concat([commoncomps,common8unitcomps,common9unitcomps])
         self.commoncomps = commoncomps
 
-    def allhdbdf(self):
+    def allhdbdfcreate(self):
         clusterdf = self.clusterdf
         unitscol = self.unitscol
         itemshdb = self.itemshdb
@@ -181,7 +181,7 @@ class TFTClusterer:
                 #empty string looks nicer in spreadsheet than nan
                 allhdbdf = allhdbdf.fillna('')
                 count = count + 1
-        
+
         self.allhdbdf = allhdbdf
         return allhdbdf
 

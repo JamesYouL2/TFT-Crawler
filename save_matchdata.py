@@ -43,7 +43,7 @@ def main(hours = 24, divisor = 25):
     f.close()
 
     #Output files to drive for deracher
-    allhdbdf = clusterclass.allhdbdf()
+    allhdbdf = clusterclass.allhdbdfcreate()
 
     variationname = 'AllGalaxies'
     trashfolder()
