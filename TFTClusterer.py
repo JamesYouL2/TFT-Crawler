@@ -10,7 +10,7 @@ from sklearn.preprocessing import normalize, scale
 from sklearn.decomposition import PCA
 
 class TFTClusterer:
-    def __init__(self, df, traitsscalar = 1.25):
+    def __init__(self, df, traitsscalar = 1.25, unitsscalar = 1, traitsnumunitscalar = 1, chosenunitscalar = 1, chosentraitscalar = 1):
         allrecords = df.to_json(orient='records')
 
         traits = pd.json_normalize(json.loads(allrecords), 
