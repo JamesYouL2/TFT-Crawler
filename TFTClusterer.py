@@ -10,7 +10,7 @@ from sklearn.preprocessing import normalize, scale
 from sklearn.decomposition import PCA
 
 class TFTClusterer:
-    def __init__(self, df, minunit = 1.25):
+    def __init__(self, df, traitsscalar = 1.25):
         allrecords = df.to_json(orient='records')
 
         traits = pd.json_normalize(json.loads(allrecords), 
@@ -35,7 +35,6 @@ class TFTClusterer:
         traits['name']=traits['name_y']
         minunits = pd.DataFrame(traits.groupby(['name','tier_current']).num_units.min())
         minunits.columns=['minunit']
-        minunits['minunit'] = minunits['minunit'] * minunit
         traits = pd.merge(minunits,traits,left_index=True,right_on=['name','tier_current'])
 
         self.itemsdf = items
@@ -47,10 +46,22 @@ class TFTClusterer:
         traitspivot=pd.pivot_table(traits,index=['match_id','participants.placement'], columns='name',values='minunit')
         traitsnumunitpivot=pd.pivot_table(traits,index=['match_id','participants.placement'], columns='name',values='num_units')
         #itemspivot=pd.pivot_table(items,index=['match_id','participants.placement'], columns=['participants.units.character_id'],values='count',aggfunc=np.sum)
+        chosenunitpivot=pd.pivot_table(units,index=['match_id','participants.placement'], columns='character_id',values='chosen',aggfunc='first')
+        chosenunitpivot=chosenunitpivot.notnull().astype('int')
+        chosentraitpivot=pd.pivot_table(units,index=['match_id','participants.placement'], columns='chosen',values='tier')
+        chosentraitpivot = chosentraitpivot.notnull().astype('int')
+
+        unitspivot = unitspivot * unitsscalar
+        traitspivot = traitspivot * traitsscalar
+        traitsnumunitpivot = traitsnumunitpivot * traitsnumunitscalar
+        chosenunitpivot = chosenunitpivot * chosenunitscalar
+        chosentraitpivot = chosentraitpivot * chosentraitscalar
 
         traitsnumunitpivot.columns = traitsnumunitpivot.columns + 'numunit'
+        chosentraitpivot.columns = chosentraitpivot.columns + 'chosen'
+        chosenunitpivot.columns = chosenunitpivot.columns + 'chosen'
 
-        dfs = [unitspivot, traitspivot, traitsnumunitpivot]
+        dfs = [unitspivot, traitspivot, traitsnumunitpivot, chosenunitpivot, chosentraitpivot]
 
         self.clusterdf = dfs[0].join(dfs[1:]).reset_index()
         #self.clusterdf = self.clusterdf.fillna(0)
@@ -59,6 +70,8 @@ class TFTClusterer:
         self.traitscol=list(traitspivot.columns)
         self.itemscol=list(items.columns)
         self.traitsnumunitcol=list(traitsnumunitpivot.columns)
+        self.chosenunitpivotcol = list(chosenunitpivot.columns)
+        self.chosentraitpivotcol = list(chosentraitpivot.columns)
 
         self.unitspivot = unitspivot
 
@@ -74,7 +87,7 @@ class TFTClusterer:
         )
 
         #Normalize data
-        cols = self.unitscol + self.traitscol + self.traitsnumunitcol
+        cols = self.unitscol + self.traitscol + self.traitsnumunitcol + self.chosenunitpivotcol + self.chosentraitpivotcol
         data = self.clusterdf[cols].fillna(0)
         norm_data = normalize(data, norm='l2')
 
@@ -104,7 +117,7 @@ class TFTClusterer:
         self.clusterdf=self.clusterdf.merge(pd.DataFrame({'hdb':self.commontraits}),left_on='hdbnumber',right_on='hdbnumber')        
 
         self.traitshdb=self.traitsdf.merge(self.clusterdf)[list(self.traitsdf.columns)+list(['hdb'])+list(['comp_id'])]
-        self.unitshdb=self.unitsdf.merge(self.clusterdf)[list(self.unitsdf.columns)+list(['hdb'])+list(['comp_id'])]
+        self.unitshdb=self.unitsdf.merge(self.clusterdf[['match_id','participants.placement','comp_id','hdb']])[list(self.unitsdf.columns)+list(['hdb'])+list(['comp_id'])]
         self.itemshdb=self.itemsdf.merge(self.clusterdf)[list(self.itemsdf.columns)+list(['hdb'])+list(['comp_id'])]
 
         comppop=pd.DataFrame(self.clusterdf.groupby('match_id')['hdb'].value_counts().rename('compsinmatch'))

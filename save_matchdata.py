@@ -21,7 +21,7 @@ def main(hours = 24, divisor = 25, minunit = 1.25):
     assert len(df) >= 100, "less than 100 matches in newest patch"
 
     #Cluster Data
-    clusterclass=TFTClusterer(df, minunit = minunit)
+    clusterclass=TFTClusterer(df, traitsscalar = minunit)
     #clusterclass.imputetraits()
     clusterclass.cluster(divisor=divisor, cluster_selection_epsilon=0)
 
