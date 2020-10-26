@@ -10,7 +10,8 @@ from sklearn.preprocessing import normalize, scale
 from sklearn.decomposition import PCA
 
 class TFTClusterer:
-    def __init__(self, df, traitsscalar = 1.25, unitsscalar = 1, traitsnumunitscalar = 1, chosenunitscalar = 1, chosentraitscalar = 1):
+    def __init__(self, df, traitsscalar = 1, unitsscalar = 1, traitsnumunitscalar = 1, 
+    chosenunitscalar = 1, chosentraitscalar = 1):
         allrecords = df.to_json(orient='records')
 
         traits = pd.json_normalize(json.loads(allrecords), 
@@ -101,7 +102,11 @@ class TFTClusterer:
         #Cluster HDB
         print('HDB Scan')
         clusterer=hdb.fit(embed)
-        self.plot = clusterer.condensed_tree_.plot(select_clusters=True, label_clusters=True)
+
+        try:
+            self.plot = clusterer.condensed_tree_.plot(select_clusters=True, label_clusters=True)
+        except:
+            pass
         
         self.clusterdf['hdbnumber'] = pd.Series(hdb.labels_+1, index=self.clusterdf.index)
         self.clusterdf['comp_id'] = self.clusterdf['participants.placement'].apply(str)+self.clusterdf['match_id']

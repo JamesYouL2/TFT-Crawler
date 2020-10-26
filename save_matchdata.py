@@ -10,7 +10,7 @@ from googledrivesave import trashfolder, outputtodrive
 from SQLGatherer import loaddb
 from matplotlib import pyplot as plt
 
-def main(hours = 24, divisor = 25, minunit = 1.25):
+def main(hours = 24, divisor = 25, chosentraitscalar = 1.5, chosenunitsscalar=1.5, traitsnumunitscalar=1.5):
     #Grab Data
     df = loaddb(hours=hours)
     df['patch_version'] = df['game_version'].str.split('.').str[:2].apply(lambda parts: ".".join(parts))
@@ -21,7 +21,7 @@ def main(hours = 24, divisor = 25, minunit = 1.25):
     assert len(df) >= 100, "less than 100 matches in newest patch"
 
     #Cluster Data
-    clusterclass=TFTClusterer(df, traitsscalar = minunit)
+    clusterclass=TFTClusterer(df, chosenunitscalar = chosenunitsscalar, chosentraitscalar=chosentraitscalar, traitsnumunitscalar=traitsnumunitscalar)
     #clusterclass.imputetraits()
     clusterclass.cluster(divisor=divisor, cluster_selection_epsilon=0)
 
