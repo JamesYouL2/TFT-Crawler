@@ -10,7 +10,8 @@ from googledrivesave import trashfolder, outputtodrive
 from SQLGatherer import loaddb
 from matplotlib import pyplot as plt
 
-def main(hours = 24, divisor = 25, chosentraitscalar = 1.5, chosenunitsscalar=1.5, traitsnumunitscalar=1.5):
+def main(hours = 24, divisor = 25, unitsscalar = 1.0, traitsscalar = 1.0,
+chosentraitscalar = 1.0, chosenunitsscalar=1.0, traitsnumunitscalar=1.0):
     #Grab Data
     df = loaddb(hours=hours)
     df['patch_version'] = df['game_version'].str.split('.').str[:2].apply(lambda parts: ".".join(parts))
