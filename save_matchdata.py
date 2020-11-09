@@ -47,8 +47,8 @@ chosentraitscalar = 1.0, chosenunitsscalar=1.0, traitsnumunitscalar=1.0):
     allhdbdf = clusterclass.allhdbdfcreate()
 
     variationname = 'AllGalaxies'
-    trashfolder()
+    #trashfolder()
 
-    outputtodrive(allhdbdf.sort_index(),variationname)
+    #outputtodrive(allhdbdf.sort_index(),variationname)
 
-    outputtodrive(pd.DataFrame(data={'last_datetime': [df['game_datetime'].max()]}),'last_datetime')
+    #outputtodrive(pd.DataFrame(data={'last_datetime': [df['game_datetime'].max()]}),'last_datetime')
