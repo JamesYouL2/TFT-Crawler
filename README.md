@@ -1,6 +1,8 @@
-#TFTSheets
+#TFTDashboard
 
-TFTSheets is a project built to display a TFT tier list in a google spreadsheet based master+ games on the most recent patch.
+TFTDashboard is a project built to display a TFT tier list in a google spreadsheet based master+ games on the most recent patch.
+
+[Dashboard link](https://app.powerbi.com/view?r=eyJrIjoiMTg3MWYwNTctYjc4Ni00ODM4LWIzZWItZmYzYmI0MzJjZGUxIiwidCI6ImY1MGNmY2Y1LTRjZGUtNDcxYS05NmQxLWJjYzAxY2FkNmFmMiIsImMiOjF9&pageName=ReportSectionad853af7c37708d627b0)
 
 The original project is credited to [dawyi](https://github.com/dawyi/) and can be found [here](https://github.com/dawyi/TFT-Crawler).
 
